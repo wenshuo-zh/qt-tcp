@@ -1,0 +1,30 @@
+# Qt Creator local settings
+*.pro.user
+*.pro.user.*
+*.autosave
+
+# Shadow builds and generated files
+build-*/
+**/build-*/
+debug/
+release/
+Makefile
+Makefile.*
+.qmake.stash
+ui_*.h
+moc_*.cpp
+moc_*.o
+qrc_*.cpp
+qrc_*.o
+*.o
+*.obj
+*.exe
+*.dll
+*.a
+*.lib
+
+# Editor and OS files
+.vs/
+.vscode/
+.DS_Store
+Thumbs.db
