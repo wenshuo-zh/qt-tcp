@@ -21,6 +21,11 @@ public:
     static Client& getInstance();
 public slots:
     void showConnect();
+
+
+private slots:
+    void on_send_PB_clicked();
+
 private:
     Ui::Client *ui;
     Client(QWidget *parent = nullptr);

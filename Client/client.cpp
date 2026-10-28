@@ -1,4 +1,5 @@
 #include "client.h"
+#include "protocol.h"
 #include "ui_client.h"
 
 #include <QFile>
@@ -46,4 +47,23 @@ Client &Client::getInstance()
 void Client::showConnect()
 {
     qDebug() << "连接成功";
+}
+
+
+
+void Client::on_send_PB_clicked()
+{
+    QString strMsg = ui->input_LE->text();
+    PDU* pdu = mkPDU(strMsg.toStdString().size());
+    pdu->uiType = ENUM_TYPE_REGIST_REQUEST;
+    //目标地址，源地址，字节数
+    memcpy(pdu->caMsg, strMsg.toStdString().c_str(), strMsg.toStdString().size());
+    m_socket.write((char*)pdu, pdu->uiTotalLen);
+    qDebug() << "send msg pdu->uiTotalLen" << pdu->uiTotalLen
+             << "pdu->uiMsgLen" << pdu->uiMsgLen
+             << "pdu->uiType" << pdu->uiType
+             << "pdu->caData" << pdu->caData
+             << "pdu->caMsg" << pdu->caMsg;
+    free(pdu);
+    pdu = NULL;
 }
