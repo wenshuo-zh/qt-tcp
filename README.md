@@ -2,6 +2,15 @@
 
 基于 Qt 5.14.2、C++11 和 qmake 的客户端/服务端练习项目，目前仍在开发中。
 
+## 开发环境
+
+- 开发工具（IDE）：Qt Creator 4.11.1。
+- Qt 库：Qt 5.14.2。
+- 构建套件（Kit）：Desktop Qt 5.14.2 MinGW 64-bit。
+- C++ 标准与构建工具：C++11、qmake。
+
+Qt Creator 与 Qt 库分别有自己的版本号；开发工具中显示的 4.11.1 是 Qt Creator 的版本。
+
 ## 工程
 
 - `Client/Client.pro`：Qt Widgets 客户端，使用 `QTcpSocket` 连接服务端。
