@@ -2,6 +2,13 @@
 *.pro.user
 *.pro.user.*
 *.autosave
+Server/database.ini
+Server/database.*.ini
+
+# Local secrets and environment files
+.env
+.env.*
+!.env.example
 
 # Shadow builds and generated files
 build-*/
@@ -22,6 +29,10 @@ qrc_*.o
 *.dll
 *.a
 *.lib
+*.pdb
+*.ilk
+*.log
+*.tmp
 
 # Editor and OS files
 .vs/
