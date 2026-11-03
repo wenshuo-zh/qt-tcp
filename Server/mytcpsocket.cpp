@@ -11,8 +11,8 @@ void MyTcpSocket::recvMsg()
 {
     qDebug() << "recvMsg接收数组总长度" << this->bytesAvailable();
     uint uiPDULen = 0;
-    this->read((char*)&uiPDULen, sizeof (uint));
-    uint uiMsgLen = uiPDULen - sizeof (PDU);
+    this->read((char*)&uiPDULen, sizeof(uint));//读取总长度到uiPDULen
+    uint uiMsgLen = uiPDULen - sizeof(PDU);
     PDU *pdu = mkPDU(uiMsgLen);
     this->read((char*)pdu+sizeof(uint), uiPDULen - sizeof(uint));
     qDebug() << "send msg pdu->uiTotalLen" << pdu->uiTotalLen

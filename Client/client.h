@@ -24,7 +24,7 @@ public slots:
 
 
 private slots:
-    void on_send_PB_clicked();
+    //void on_send_PB_clicked();
 
 private:
     Ui::Client *ui;
