@@ -5,6 +5,7 @@
 #include <QCoreApplication>
 #include <QFile>
 #include <QSettings>
+#include <QSqlQuery>
 
 OperateDB &OperateDB::getInstance()
 {
@@ -32,6 +33,22 @@ void OperateDB::connectSQL()
     }else{
         qDebug() << "数据库连接失败" << m_db.lastError().text();
     }
+}
+
+bool OperateDB::handleRegist(const char *caName, const char *caPwd)
+{
+    //用户名密码判空
+    if(caName == NULL || caPwd == NULL){
+        return false;
+    }
+    //sql语句，判断用户名是否已存在
+    QString sql = QString("select * from user_info where name = '%1'").arg(caName);
+    QSqlQuery q;
+    if(!q.exec(sql) || q.next()){
+        return false;
+    }
+    sql = QString("insert into user_info(name, pwd) values('%1', '%2')").arg(caName).arg(caPwd);
+    return q.exec(sql);
 }
 
 OperateDB::~OperateDB()

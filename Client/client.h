@@ -26,6 +26,8 @@ public slots:
 private slots:
     //void on_send_PB_clicked();
 
+    void on_regist_PB_clicked();
+
 private:
     Ui::Client *ui;
     Client(QWidget *parent = nullptr);
