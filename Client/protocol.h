@@ -8,6 +8,8 @@ enum ENUM_TYPE{
     ENUM_TYPE_MIN = 0,
     ENUM_TYPE_REGIST_REQUEST,   //注册请求
     ENUM_TYPE_REGIST_RESPOND,   //注册响应
+    ENUM_TYPE_LOGIN_REQUEST,    //登录请求
+    ENUM_TYPE_LOGIN_RESPOND,    //登录响应
     ENUM_TYPE_MAX = 9999,
 };
 

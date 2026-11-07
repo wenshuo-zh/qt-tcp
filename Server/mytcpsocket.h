@@ -9,6 +9,7 @@ class MyTcpSocket : public QTcpSocket
     Q_OBJECT
 public:
     MyTcpSocket();
+    QString m_strLoginName;
 public slots:
     void recvMsg();
 };

@@ -14,6 +14,8 @@ Client::Client(QWidget *parent)
     ui->setupUi(this);
     loadConfig();
     connect(&m_socket, &QTcpSocket::connected, this, &Client::showConnect);
+    //connect参数(信号发送者, 信号, 接收对象, 要执行的槽函数) 都是指针
+    connect(&m_socket, &QTcpSocket::readyRead, this, &Client::recvMsg);
     m_socket.connectToHost(QHostAddress(m_strIp), m_usPort);
 }
 
@@ -95,6 +97,74 @@ void Client::on_regist_PB_clicked()
              << "pdu->caData" << pdu->caData+32
              << "pdu->caMsg" << pdu->caMsg;
 
+    free(pdu);
+    pdu = NULL;
+}
+
+void Client::recvMsg()
+{
+    qDebug() << "recvMsg 接收消息长度" << m_socket.bytesAvailable();
+    uint uiPDULen = 0;
+    //read参数(读取的数据存到内存的地址, 读取的字节数);
+    //第一次读为了知道长度
+    m_socket.read((char*)&uiPDULen, sizeof (uint));
+    uint uiMsgLen = uiPDULen - sizeof (PDU);
+    PDU* pdu = mkPDU(uiMsgLen);
+    //第二次读为了接收剩余内容
+    m_socket.read((char*)pdu + sizeof(uint), uiPDULen - sizeof(uint));
+    switch(pdu->uiType){
+    case ENUM_TYPE_REGIST_RESPOND:{
+        bool ret;
+        memcpy(&ret, pdu->caData, sizeof (bool));
+        qDebug() << "regist ret" << ret;
+        if(ret){
+            QMessageBox::information(this, "提示", "注册成功");
+        }
+        else{
+            QMessageBox::information(this, "提示", "注册失败");
+        }
+        break;
+    }
+    case ENUM_TYPE_LOGIN_RESPOND:{
+        bool ret;
+        memcpy(&ret, pdu->caData, sizeof (bool));
+        qDebug() << "login ret" << ret;
+        if(ret){
+            QMessageBox::information(this, "提示", "登录成功");
+        }
+        else{
+            QMessageBox::information(this, "提示", "登录失败");
+        }
+        break;
+    }
+    default:{
+        break;
+    }
+    }
+    free(pdu);
+    pdu = NULL;
+}
+
+void Client::on_login_PB_clicked()
+{
+    QString strName = ui->name_LE->text();
+    QString strPwd = ui->pwd_LE->text();
+    if(strName.isEmpty() || strPwd.isEmpty() || strName.toStdString().size() > 32 || strPwd.toStdString().size() > 32){
+        QMessageBox::critical(this, "登录失败", "用户名或密码长度非法");
+        return;
+    }
+    m_strLoginName = strName;
+    PDU* pdu = mkPDU(0);
+    memcpy(pdu->caData, strName.toStdString().c_str(), 32);
+    memcpy(pdu->caData+32, strPwd.toStdString().c_str(), 32);
+    pdu->uiType = ENUM_TYPE_LOGIN_REQUEST;
+    m_socket.write((char*)pdu, pdu->uiTotalLen);
+    qDebug() << "send msg pdu->uiTotalLen" << pdu->uiTotalLen
+             << "pdu->uiMsgLen" << pdu->uiMsgLen
+             << "pdu->uiType" << pdu->uiType
+             << "pdu->caData" << pdu->caData
+             << "pdu->caData" << pdu->caData+32
+             << "pdu->caMsg" << pdu->caMsg;
     free(pdu);
     pdu = NULL;
 }

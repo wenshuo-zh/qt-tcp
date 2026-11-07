@@ -43,11 +43,30 @@ bool OperateDB::handleRegist(const char *caName, const char *caPwd)
     }
     //sql语句，判断用户名是否已存在
     QString sql = QString("select * from user_info where name = '%1'").arg(caName);
+    qDebug() << "查找用户名是否存在 sql" << sql;
     QSqlQuery q;
     if(!q.exec(sql) || q.next()){
         return false;
     }
     sql = QString("insert into user_info(name, pwd) values('%1', '%2')").arg(caName).arg(caPwd);
+    qDebug() << "数据库插入姓名和密码 sql" << sql;
+    return q.exec(sql);
+}
+
+bool OperateDB::handleLogin(const char *caName, const char *caPwd)
+{
+    if(caName == NULL || caPwd == NULL){
+        return false;
+    }
+    QString sql = QString("select * from user_info where name = '%1' and pwd = '%2'").arg(caName).arg(caPwd);
+    qDebug() << "查找用户名和密码是否存在 sql" << sql;
+    QSqlQuery q;
+    if(!q.exec(sql) || !q.next()){
+        return false;
+    }
+    //更新在线状态
+    sql = QString("update user_info set online=1 where name='%1'").arg(caName);
+    qDebug() << "将用户的online字段置为1 sql" << sql;
     return q.exec(sql);
 }
 

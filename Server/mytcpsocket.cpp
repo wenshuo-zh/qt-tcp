@@ -52,6 +52,31 @@ void MyTcpSocket::recvMsg()
         respdu = NULL;
         break;
     }
+
+    case ENUM_TYPE_LOGIN_REQUEST:{
+        char caName[32] = {'\0'};
+        memcpy(caName, pdu->caData, 32);
+        char caPwd[32] = {'\0'};
+        memcpy(caPwd, pdu->caData+32, 32);
+        bool res = OperateDB::getInstance().handleLogin(caName, caPwd);
+        qDebug() << "login res" << res;
+        if(res){
+            m_strLoginName = caName;
+        }
+        PDU* respdu = mkPDU(0);
+        memcpy(respdu->caData, &res, sizeof (bool));
+        respdu->uiType = ENUM_TYPE_LOGIN_RESPOND;
+        this->write((char*)respdu, respdu->uiTotalLen);
+        qDebug() << "send msg respdu->uiTotalLen" << respdu->uiTotalLen
+                 << "respdu->uiMsgLen" << respdu->uiMsgLen
+                 << "respdu->uiType" << respdu->uiType
+                 << "respdu->caData" << respdu->caData
+                 << "respdu->caData+32" << respdu->caData+32
+                 << "respdu->caMsg" << respdu->caMsg;
+        free(respdu);
+        respdu = NULL;
+        break;
+    }
     default:
         break;
     }

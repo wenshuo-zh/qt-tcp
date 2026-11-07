@@ -12,6 +12,7 @@ public:
     void connectSQL();
     //处理请求
     bool handleRegist(const char* caName, const char* caPwd);
+    bool handleLogin(const char* caName, const char* caPwd);
     ~OperateDB();
 private:
     explicit OperateDB(QObject *parent = nullptr);

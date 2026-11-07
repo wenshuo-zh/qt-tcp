@@ -19,6 +19,7 @@ public:
     quint16 m_usPort;
     QTcpSocket m_socket;
     static Client& getInstance();
+    QString m_strLoginName;
 public slots:
     void showConnect();
 
@@ -27,6 +28,8 @@ private slots:
     //void on_send_PB_clicked();
 
     void on_regist_PB_clicked();
+    void recvMsg();
+    void on_login_PB_clicked();
 
 private:
     Ui::Client *ui;
