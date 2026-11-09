@@ -12,6 +12,7 @@ class MyTcpServer : public QTcpServer
 public:
     static MyTcpServer& getInstance();
     void incomingConnection(qintptr handle) override;
+    void removeSocket(MyTcpSocket* mySocket);
 private:
     MyTcpServer();
     MyTcpServer(const MyTcpServer& instance) = delete;

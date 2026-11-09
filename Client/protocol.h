@@ -10,6 +10,8 @@ enum ENUM_TYPE{
     ENUM_TYPE_REGIST_RESPOND,   //注册响应
     ENUM_TYPE_LOGIN_REQUEST,    //登录请求
     ENUM_TYPE_LOGIN_RESPOND,    //登录响应
+    ENUM_TYPE_FIND_USER_REQUEST, //查询用户请求
+    ENUM_TYPE_FIND_USER_RESPOND, //查询用户响应
     ENUM_TYPE_MAX = 9999,
 };
 

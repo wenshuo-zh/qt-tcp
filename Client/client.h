@@ -1,6 +1,8 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include "protocol.h"
+
 #include <QTcpSocket>
 #include <QWidget>
 
@@ -20,6 +22,7 @@ public:
     QTcpSocket m_socket;
     static Client& getInstance();
     QString m_strLoginName;
+    void sendMsg(PDU* pdu);
 public slots:
     void showConnect();
 

@@ -1,4 +1,5 @@
 #include "client.h"
+#include "index.h"
 #include "protocol.h"
 #include "ui_client.h"
 
@@ -47,6 +48,19 @@ Client &Client::getInstance()
     return instance;
 }
 
+void Client::sendMsg(PDU *pdu)
+{
+    m_socket.write((char*)pdu, pdu->uiTotalLen);
+    qDebug() << "send msg pdu->uiTotalLen" << pdu->uiTotalLen
+             << "pdu->uiMsgLen" << pdu->uiMsgLen
+             << "pdu->uiType" << pdu->uiType
+             << "pdu->caData" << pdu->caData
+             << "pdu->caData" << pdu->caData+32
+             << "pdu->caMsg" << pdu->caMsg;
+    free(pdu);
+    pdu = NULL;
+}
+
 void Client::showConnect()
 {
     qDebug() << "连接成功";
@@ -89,16 +103,7 @@ void Client::on_regist_PB_clicked()
     memcpy(pdu->caData+32, strPwd.toStdString().c_str(), 32);
     pdu->uiType = ENUM_TYPE_REGIST_REQUEST;
     //通过socket发送pdu
-    m_socket.write((char*)pdu, pdu->uiTotalLen);
-    qDebug() << "send msg pdu->uiTotalLen" << pdu->uiTotalLen
-             << "pdu->uiMsgLen" << pdu->uiMsgLen
-             << "pdu->uiType" << pdu->uiType
-             << "pdu->caData" << pdu->caData
-             << "pdu->caData" << pdu->caData+32
-             << "pdu->caMsg" << pdu->caMsg;
-
-    free(pdu);
-    pdu = NULL;
+    Client::getInstance().sendMsg(pdu);
 }
 
 void Client::recvMsg()
@@ -130,10 +135,26 @@ void Client::recvMsg()
         memcpy(&ret, pdu->caData, sizeof (bool));
         qDebug() << "login ret" << ret;
         if(ret){
-            QMessageBox::information(this, "提示", "登录成功");
+            Index::getInstance().show();
+            this->hide();
         }
         else{
             QMessageBox::information(this, "提示", "登录失败");
+        }
+        break;
+    }
+    case ENUM_TYPE_FIND_USER_RESPOND:{
+        int ret;
+        memcpy(&ret, pdu->caData, sizeof (int));
+        qDebug() << "findUser ret" << ret;
+        if(ret == 0){
+            QMessageBox::information(this, "提示", "用户不在线");
+        }else if(ret == 1){
+            QMessageBox::information(this, "提示", "用户在线");
+        }else if(ret == 2){
+            QMessageBox::information(this, "提示", "用户不存在");
+        }else if(ret == -1){
+            QMessageBox::information(this, "提示", "查找失败");
         }
         break;
     }
@@ -158,13 +179,5 @@ void Client::on_login_PB_clicked()
     memcpy(pdu->caData, strName.toStdString().c_str(), 32);
     memcpy(pdu->caData+32, strPwd.toStdString().c_str(), 32);
     pdu->uiType = ENUM_TYPE_LOGIN_REQUEST;
-    m_socket.write((char*)pdu, pdu->uiTotalLen);
-    qDebug() << "send msg pdu->uiTotalLen" << pdu->uiTotalLen
-             << "pdu->uiMsgLen" << pdu->uiMsgLen
-             << "pdu->uiType" << pdu->uiType
-             << "pdu->caData" << pdu->caData
-             << "pdu->caData" << pdu->caData+32
-             << "pdu->caMsg" << pdu->caMsg;
-    free(pdu);
-    pdu = NULL;
+    Client::getInstance().sendMsg(pdu);
 }

@@ -2,10 +2,13 @@
 #include <QDebug>
 #include "protocol.h"
 #include "operatedb.h"
+#include "mytcpserver.h"
 
 MyTcpSocket::MyTcpSocket()
 {
     connect(this, &QTcpSocket::readyRead, this, &MyTcpSocket::recvMsg);
+    //关联断开连接
+    connect(this, &QTcpSocket::disconnected, this, &MyTcpSocket::clientOffline);
 }
 
 void MyTcpSocket::recvMsg()
@@ -41,15 +44,7 @@ void MyTcpSocket::recvMsg()
         memcpy(respdu->caData, &res, sizeof (bool));
         respdu->uiType = ENUM_TYPE_REGIST_RESPOND;
         //调用父类socket发送respdu
-        this->write((char*)respdu, respdu->uiTotalLen);
-        qDebug() << "send msg respdu->uiTotalLen" << respdu->uiTotalLen
-                 << "respdu->uiMsgLen" << respdu->uiMsgLen
-                 << "respdu->uiType" << respdu->uiType
-                 << "respdu->caData" << respdu->caData
-                 << "respdu->caData+32" << respdu->caData+32
-                 << "respdu->caMsg" << respdu->caMsg;
-        free(respdu);
-        respdu = NULL;
+        MyTcpSocket::sendMsg(respdu);
         break;
     }
 
@@ -66,15 +61,18 @@ void MyTcpSocket::recvMsg()
         PDU* respdu = mkPDU(0);
         memcpy(respdu->caData, &res, sizeof (bool));
         respdu->uiType = ENUM_TYPE_LOGIN_RESPOND;
-        this->write((char*)respdu, respdu->uiTotalLen);
-        qDebug() << "send msg respdu->uiTotalLen" << respdu->uiTotalLen
-                 << "respdu->uiMsgLen" << respdu->uiMsgLen
-                 << "respdu->uiType" << respdu->uiType
-                 << "respdu->caData" << respdu->caData
-                 << "respdu->caData+32" << respdu->caData+32
-                 << "respdu->caMsg" << respdu->caMsg;
-        free(respdu);
-        respdu = NULL;
+        MyTcpSocket::sendMsg(respdu);
+        break;
+    }
+    case ENUM_TYPE_FIND_USER_REQUEST:{
+        char caName[32] = {'\0'};
+        memcpy(caName, pdu->caData, 32);
+        int res = OperateDB::getInstance().handleFindUser(caName);
+        qDebug() << "findUser res" << res;
+        PDU* respdu = mkPDU();
+        memcpy(respdu->caData, &res, sizeof (int));
+        respdu->uiType = ENUM_TYPE_FIND_USER_RESPOND;
+        MyTcpSocket::sendMsg(respdu);
         break;
     }
     default:
@@ -82,4 +80,23 @@ void MyTcpSocket::recvMsg()
     }
     free(pdu);
     pdu = NULL;
+}
+
+void MyTcpSocket::clientOffline()
+{
+    OperateDB::getInstance().handleOffline(m_strLoginName.toStdString().c_str());
+    MyTcpServer::getInstance().removeSocket(this);
+}
+
+void MyTcpSocket::sendMsg(PDU* respdu)
+{
+    this->write((char*)respdu, respdu->uiTotalLen);
+    qDebug() << "send msg respdu->uiTotalLen" << respdu->uiTotalLen
+             << "respdu->uiMsgLen" << respdu->uiMsgLen
+             << "respdu->uiType" << respdu->uiType
+             << "respdu->caData" << respdu->caData
+             << "respdu->caData+32" << respdu->caData+32
+             << "respdu->caMsg" << respdu->caMsg;
+    free(respdu);
+    respdu = NULL;
 }

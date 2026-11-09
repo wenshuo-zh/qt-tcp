@@ -70,6 +70,38 @@ bool OperateDB::handleLogin(const char *caName, const char *caPwd)
     return q.exec(sql);
 }
 
+void OperateDB::handleOffline(const char *caName)
+{
+    if(caName == NULL){
+        return;
+    }
+    QString sql = QString("update user_info set online=0 where name='%1'").arg(caName);
+    qDebug() << "将用户的online字段值置为0 sql" << sql;
+    QSqlQuery q;
+    bool ret = q.exec(sql);
+    qDebug() << "handleOffline ret" << ret;
+}
+
+int OperateDB::handleFindUser(const char *caName)
+{
+    if(caName == NULL){
+        return -1;
+    }
+    QString sql = QString("select online from user_info where name='%1' ").arg(caName);
+    qDebug() << "查找用户online字段 sql" << sql;
+    QSqlQuery q;
+    if(!q.exec(sql)){
+        //执行失败，返回-1
+        return -1;
+    }
+    if(q.next()){
+        //查询到了，返回online字段
+        return q.value(0).toInt();
+    }
+    //没查到用户，返回2
+    return 2;
+}
+
 OperateDB::~OperateDB()
 {
     m_db.close();

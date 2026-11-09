@@ -14,7 +14,14 @@ void MyTcpServer::incomingConnection(qintptr handle)
     pTcpSocket->setSocketDescriptor(handle);
     m_tcpSocketList.append(pTcpSocket);
 
-    for(int i = 0; i < m_tcpSocketList.size(); i++)qDebug() << m_tcpSocketList[i];
+    //for(int i = 0; i < m_tcpSocketList.size(); i++)qDebug() << m_tcpSocketList[i];
+}
+
+void MyTcpServer::removeSocket(MyTcpSocket *mySocket)
+{
+    m_tcpSocketList.removeOne(mySocket);
+    mySocket->deleteLater();
+    mySocket = NULL;
 }
 
 MyTcpServer::MyTcpServer()

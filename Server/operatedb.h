@@ -10,9 +10,14 @@ class OperateDB : public QObject
 public:
     static OperateDB&getInstance();
     void connectSQL();
-    //处理请求
+    //处理注册请求
     bool handleRegist(const char* caName, const char* caPwd);
+    //处理登录请求
     bool handleLogin(const char* caName, const char* caPwd);
+    //处理离线
+    void handleOffline(const char* caName);
+    //处理查询用户
+    int handleFindUser(const char* caName);
     ~OperateDB();
 private:
     explicit OperateDB(QObject *parent = nullptr);
