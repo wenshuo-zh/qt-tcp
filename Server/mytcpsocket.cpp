@@ -4,83 +4,20 @@
 #include "operatedb.h"
 #include "mytcpserver.h"
 
-MyTcpSocket::MyTcpSocket()
+MyTcpSocket::MyTcpSocket() : m_pmh(new MsgHandler)
 {
     connect(this, &QTcpSocket::readyRead, this, &MyTcpSocket::recvMsg);
     //关联断开连接
     connect(this, &QTcpSocket::disconnected, this, &MyTcpSocket::clientOffline);
 }
 
-void MyTcpSocket::recvMsg()
+MyTcpSocket::~MyTcpSocket()
 {
-    qDebug() << "recvMsg接收数组总长度" << this->bytesAvailable();
-    uint uiPDULen = 0;
-    this->read((char*)&uiPDULen, sizeof(uint));//读取总长度到uiPDULen
-    uint uiMsgLen = uiPDULen - sizeof(PDU);
-    PDU *pdu = mkPDU(uiMsgLen);
-    this->read((char*)pdu+sizeof(uint), uiPDULen - sizeof(uint));
-    qDebug() << "send msg pdu->uiTotalLen" << pdu->uiTotalLen
-             << "pdu->uiMsgLen" << pdu->uiMsgLen
-             << "pdu->uiType" << pdu->uiType
-             << "pdu->caData" << pdu->caData
-             << "pdu->caMsg" << pdu->caMsg;
-
-    //case语句判断类型
-    switch (pdu->uiType) {
-
-    //服务器处理注册并将结果相应给服务端（后期封装成函数）
-    case ENUM_TYPE_REGIST_REQUEST:{
-        //从caData取出账号密码
-        char caName[32] = {'\0'};
-        memcpy(caName, pdu->caData, 32);
-        char caPwd[32] = {'\0'};
-        memcpy(caPwd, pdu->caData+32, 32);
-        qDebug() << "regist caName" << caName << "regist caPwd" << caPwd;
-        //数据库操作类处理注册函数
-        bool res = OperateDB::getInstance().handleRegist(caName, caPwd);
-        qDebug() << "regist res" << res;
-        //构建respdu，处理结果放进caData，注册响应类型赋值给消息类型
-        PDU* respdu = mkPDU(0);
-        memcpy(respdu->caData, &res, sizeof (bool));
-        respdu->uiType = ENUM_TYPE_REGIST_RESPOND;
-        //调用父类socket发送respdu
-        MyTcpSocket::sendMsg(respdu);
-        break;
-    }
-
-    case ENUM_TYPE_LOGIN_REQUEST:{
-        char caName[32] = {'\0'};
-        memcpy(caName, pdu->caData, 32);
-        char caPwd[32] = {'\0'};
-        memcpy(caPwd, pdu->caData+32, 32);
-        bool res = OperateDB::getInstance().handleLogin(caName, caPwd);
-        qDebug() << "login res" << res;
-        if(res){
-            m_strLoginName = caName;
-        }
-        PDU* respdu = mkPDU(0);
-        memcpy(respdu->caData, &res, sizeof (bool));
-        respdu->uiType = ENUM_TYPE_LOGIN_RESPOND;
-        MyTcpSocket::sendMsg(respdu);
-        break;
-    }
-    case ENUM_TYPE_FIND_USER_REQUEST:{
-        char caName[32] = {'\0'};
-        memcpy(caName, pdu->caData, 32);
-        int res = OperateDB::getInstance().handleFindUser(caName);
-        qDebug() << "findUser res" << res;
-        PDU* respdu = mkPDU();
-        memcpy(respdu->caData, &res, sizeof (int));
-        respdu->uiType = ENUM_TYPE_FIND_USER_RESPOND;
-        MyTcpSocket::sendMsg(respdu);
-        break;
-    }
-    default:
-        break;
-    }
-    free(pdu);
-    pdu = NULL;
+    delete m_pmh;
+    m_pmh = NULL;
 }
+
+
 
 void MyTcpSocket::clientOffline()
 {
@@ -88,15 +25,65 @@ void MyTcpSocket::clientOffline()
     MyTcpServer::getInstance().removeSocket(this);
 }
 
+PDU *MyTcpSocket::readMsg()
+{
+    qDebug() << "recvMsg接收数组总长度" << this->bytesAvailable();
+    uint uiPDULen = 0;
+    this->read((char*)&uiPDULen, sizeof(uint));//读取总长度到uiPDULen
+    uint uiMsgLen = uiPDULen - sizeof(PDU);
+    PDU *pdu = mkPDU(uiMsgLen);
+    this->read((char*)pdu+sizeof(uint), uiPDULen - sizeof(uint));
+    return pdu;
+}
+
+PDU *MyTcpSocket::handleMsg(PDU *pdu)
+{
+    PDU* respdu = NULL;
+    m_pmh->pdu = pdu;
+    //case语句判断类型
+    switch (pdu->uiType) {
+
+    case ENUM_TYPE_REGIST_REQUEST:{
+        respdu = m_pmh->regist();
+        break;
+    }
+
+    case ENUM_TYPE_LOGIN_REQUEST:{
+        respdu = m_pmh->login(m_strLoginName);
+        break;
+    }
+    case ENUM_TYPE_FIND_USER_REQUEST:{
+        respdu = m_pmh->findUser();
+        break;
+    }
+    case ENUM_TYPE_ONLINE_USER_REQUEST:{
+        respdu = m_pmh->onlineUser();
+        break;
+    }
+    default:
+        break;
+    }
+    free(pdu);
+    pdu = NULL;
+    return respdu;
+}
+
 void MyTcpSocket::sendMsg(PDU* respdu)
 {
+    if(respdu == NULL)return ;
     this->write((char*)respdu, respdu->uiTotalLen);
     qDebug() << "send msg respdu->uiTotalLen" << respdu->uiTotalLen
              << "respdu->uiMsgLen" << respdu->uiMsgLen
              << "respdu->uiType" << respdu->uiType
              << "respdu->caData" << respdu->caData
-             << "respdu->caData+32" << respdu->caData+32
-             << "respdu->caMsg" << respdu->caMsg;
+             << "respdu->caData+32" << respdu->caData+32;
     free(respdu);
     respdu = NULL;
+}
+
+void MyTcpSocket::recvMsg()
+{
+    PDU* pdu = readMsg();
+    PDU* respdu = handleMsg(pdu);
+    sendMsg(respdu);
 }

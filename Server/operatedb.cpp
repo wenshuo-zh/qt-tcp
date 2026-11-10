@@ -102,6 +102,20 @@ int OperateDB::handleFindUser(const char *caName)
     return 2;
 }
 
+QStringList OperateDB::handleOnlineUser()
+{
+    QString sql = QString("select name from user_info where online = 1");
+    QSqlQuery q;
+    q.exec(sql);
+    QStringList res;
+    while(q.next()){
+        res.append(q.value(0).toString());
+    }
+    return res;
+}
+
+
+
 OperateDB::~OperateDB()
 {
     m_db.close();

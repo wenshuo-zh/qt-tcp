@@ -21,20 +21,25 @@ SOURCES += \
     index.cpp \
     main.cpp \
     client.cpp \
-    protocol.cpp
+    onlineuser.cpp \
+    protocol.cpp \
+    reshandler.cpp
 
 HEADERS += \
     client.h \
     file.h \
     friend.h \
     index.h \
-    protocol.h
+    onlineuser.h \
+    protocol.h \
+    reshandler.h
 
 FORMS += \
     client.ui \
     file.ui \
     friend.ui \
-    index.ui
+    index.ui \
+    onlineuser.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

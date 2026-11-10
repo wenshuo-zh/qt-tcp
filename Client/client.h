@@ -2,6 +2,7 @@
 #define CLIENT_H
 
 #include "protocol.h"
+#include "reshandler.h"
 
 #include <QTcpSocket>
 #include <QWidget>
@@ -15,14 +16,19 @@ class Client : public QWidget
     Q_OBJECT
 
 public:
-    ~Client();
-    void loadConfig();
     QString m_strIp;
     quint16 m_usPort;
     QTcpSocket m_socket;
-    static Client& getInstance();
     QString m_strLoginName;
+    ResHandler* m_prh;
+    static Client& getInstance();
+    void loadConfig();
+    PDU* readMsg();
+    void handleMsg(PDU* pdu);
     void sendMsg(PDU* pdu);
+
+    ~Client();
+
 public slots:
     void showConnect();
 

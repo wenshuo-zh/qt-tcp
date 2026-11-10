@@ -1,6 +1,7 @@
 #ifndef MYTCPSOCKET_H
 #define MYTCPSOCKET_H
 
+#include "msghandler.h"
 #include "protocol.h"
 
 #include <QObject>
@@ -11,11 +12,15 @@ class MyTcpSocket : public QTcpSocket
     Q_OBJECT
 public:
     MyTcpSocket();
+    ~MyTcpSocket();
     QString m_strLoginName;
+    MsgHandler* m_pmh;
+    PDU* readMsg();
+    PDU* handleMsg(PDU* pdu);
+    void sendMsg(PDU* pdu);
 public slots:
     void recvMsg();
     void clientOffline();
-    void sendMsg(PDU* pdu);
 };
 
 #endif // MYTCPSOCKET_H

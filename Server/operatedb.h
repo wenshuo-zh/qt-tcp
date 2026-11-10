@@ -18,6 +18,8 @@ public:
     void handleOffline(const char* caName);
     //处理查询用户
     int handleFindUser(const char* caName);
+    //处理在线用户
+    QStringList handleOnlineUser();
     ~OperateDB();
 private:
     explicit OperateDB(QObject *parent = nullptr);

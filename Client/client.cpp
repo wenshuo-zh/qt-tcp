@@ -11,6 +11,7 @@
 Client::Client(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Client)
+    , m_prh(new ResHandler)
 {
     ui->setupUi(this);
     loadConfig();
@@ -22,6 +23,8 @@ Client::Client(QWidget *parent)
 
 Client::~Client()
 {
+    delete m_prh;
+    m_prh = NULL;
     delete ui;
 }
 
@@ -48,6 +51,34 @@ Client &Client::getInstance()
     return instance;
 }
 
+
+void Client::handleMsg(PDU *pdu)
+{
+    switch(pdu->uiType){
+    case ENUM_TYPE_REGIST_RESPOND:{
+        m_prh->regist(pdu);
+        break;
+    }
+    case ENUM_TYPE_LOGIN_RESPOND:{
+        m_prh->login(pdu);
+        break;
+    }
+    case ENUM_TYPE_FIND_USER_RESPOND:{
+        m_prh->findUser(pdu);
+        break;
+    }
+    case ENUM_TYPE_ONLINE_USER_RESPOND:{
+        m_prh->onlineUser(pdu);
+        break;
+    }
+    default:{
+        break;
+    }
+    }
+    free(pdu);
+    pdu = NULL;
+}
+
 void Client::sendMsg(PDU *pdu)
 {
     m_socket.write((char*)pdu, pdu->uiTotalLen);
@@ -55,10 +86,23 @@ void Client::sendMsg(PDU *pdu)
              << "pdu->uiMsgLen" << pdu->uiMsgLen
              << "pdu->uiType" << pdu->uiType
              << "pdu->caData" << pdu->caData
-             << "pdu->caData" << pdu->caData+32
-             << "pdu->caMsg" << pdu->caMsg;
+             << "pdu->caData" << pdu->caData+32;
     free(pdu);
     pdu = NULL;
+}
+
+PDU *Client::readMsg()
+{
+    qDebug() << "recvMsg 接收消息长度" << m_socket.bytesAvailable();
+    uint uiPDULen = 0;
+    //read参数(读取的数据存到内存的地址, 读取的字节数);
+    //第一次读为了知道长度
+    m_socket.read((char*)&uiPDULen, sizeof (uint));
+    uint uiMsgLen = uiPDULen - sizeof (PDU);
+    PDU* pdu = mkPDU(uiMsgLen);
+    //第二次读为了接收剩余内容
+    m_socket.read((char*)pdu + sizeof(uint), uiPDULen - sizeof(uint));
+    return pdu;
 }
 
 void Client::showConnect()
@@ -108,62 +152,8 @@ void Client::on_regist_PB_clicked()
 
 void Client::recvMsg()
 {
-    qDebug() << "recvMsg 接收消息长度" << m_socket.bytesAvailable();
-    uint uiPDULen = 0;
-    //read参数(读取的数据存到内存的地址, 读取的字节数);
-    //第一次读为了知道长度
-    m_socket.read((char*)&uiPDULen, sizeof (uint));
-    uint uiMsgLen = uiPDULen - sizeof (PDU);
-    PDU* pdu = mkPDU(uiMsgLen);
-    //第二次读为了接收剩余内容
-    m_socket.read((char*)pdu + sizeof(uint), uiPDULen - sizeof(uint));
-    switch(pdu->uiType){
-    case ENUM_TYPE_REGIST_RESPOND:{
-        bool ret;
-        memcpy(&ret, pdu->caData, sizeof (bool));
-        qDebug() << "regist ret" << ret;
-        if(ret){
-            QMessageBox::information(this, "提示", "注册成功");
-        }
-        else{
-            QMessageBox::information(this, "提示", "注册失败");
-        }
-        break;
-    }
-    case ENUM_TYPE_LOGIN_RESPOND:{
-        bool ret;
-        memcpy(&ret, pdu->caData, sizeof (bool));
-        qDebug() << "login ret" << ret;
-        if(ret){
-            Index::getInstance().show();
-            this->hide();
-        }
-        else{
-            QMessageBox::information(this, "提示", "登录失败");
-        }
-        break;
-    }
-    case ENUM_TYPE_FIND_USER_RESPOND:{
-        int ret;
-        memcpy(&ret, pdu->caData, sizeof (int));
-        qDebug() << "findUser ret" << ret;
-        if(ret == 0){
-            QMessageBox::information(this, "提示", "用户不在线");
-        }else if(ret == 1){
-            QMessageBox::information(this, "提示", "用户在线");
-        }else if(ret == 2){
-            QMessageBox::information(this, "提示", "用户不存在");
-        }else if(ret == -1){
-            QMessageBox::information(this, "提示", "查找失败");
-        }
-        break;
-    }
-    default:{
-        break;
-    }
-    }
-    free(pdu);
-    pdu = NULL;
+    PDU* pdu = readMsg();
+    handleMsg(pdu);
 }
 
 void Client::on_login_PB_clicked()
