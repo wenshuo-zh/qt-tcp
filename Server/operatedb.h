@@ -20,6 +20,10 @@ public:
     int handleFindUser(const char* caName);
     //处理在线用户
     QStringList handleOnlineUser();
+    //处理添加好友
+    int handleAddFriend(const char* caCurName, const char* caTarName);
+    //处理同意添加好友
+    bool handleAddFriendAgree(const char *caCurName, const char *caTarName);
     ~OperateDB();
 private:
     explicit OperateDB(QObject *parent = nullptr);

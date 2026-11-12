@@ -71,6 +71,18 @@ void Client::handleMsg(PDU *pdu)
         m_prh->onlineUser(pdu);
         break;
     }
+    case ENUM_TYPE_ADD_FRIEND_RESPOND:{
+        m_prh->addFriend(pdu);
+        break;
+    }
+    case ENUM_TYPE_ADD_FRIEND_RESEND:{
+        m_prh->addFriendResend(pdu);
+        break;
+    }
+    case ENUM_TYPE_ADD_FRIEND_AGREE_RESPOND:{
+        m_prh->addFriendAgree(pdu);
+        break;
+    }
     default:{
         break;
     }

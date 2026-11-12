@@ -24,6 +24,22 @@ void MyTcpServer::removeSocket(MyTcpSocket *mySocket)
     mySocket = NULL;
 }
 
+void MyTcpServer::resendSocket(char *caTarName, PDU *pdu)
+{
+    if(caTarName == NULL || pdu == NULL)return;
+    for(int i = 0; i < m_tcpSocketList.size(); i++){
+        if(m_tcpSocketList[i]->m_strLoginName == caTarName){
+            m_tcpSocketList[i]->write((char*)pdu, pdu->uiTotalLen);
+            qDebug() << "resendSocket pdu->uiTotalLen" << pdu->uiTotalLen
+                     << "pdu->uiMsgLen" << pdu->uiMsgLen
+                     << "pdu->uiType" << pdu->uiType
+                     << "pdu->caData" << pdu->caData
+                     << "pdu->caData+32" << pdu->caData+32;
+            break;
+        }
+    }
+}
+
 MyTcpServer::MyTcpServer()
 {
 

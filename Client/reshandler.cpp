@@ -42,13 +42,13 @@ void ResHandler::findUser(PDU *pdu)
     memcpy(&ret, pdu->caData, sizeof (int));
     qDebug() << "findUser ret" << ret;
     if(ret == 0){
-        QMessageBox::information(&Index::getInstance(), "提示", "用户不在线");
+        QMessageBox::information(&Index::getInstance(), "查找在线用户", "用户不在线");
     }else if(ret == 1){
-        QMessageBox::information(&Index::getInstance(), "提示", "用户在线");
+        QMessageBox::information(&Index::getInstance(), "查找在线用户", "用户在线");
     }else if(ret == 2){
-        QMessageBox::information(&Index::getInstance(), "提示", "用户不存在");
+        QMessageBox::information(&Index::getInstance(), "查找在线用户", "用户不存在");
     }else if(ret == -1){
-        QMessageBox::information(&Index::getInstance(), "提示", "查找失败");
+        QMessageBox::information(&Index::getInstance(), "查找在线用户", "查找失败");
     }
 }
 
@@ -63,4 +63,45 @@ void ResHandler::onlineUser(PDU *pdu)
         userList.append(caTmp);
     }
     Index::getInstance().getFriend()->m_pOnlineUser->updateLW(userList);
+}
+
+void ResHandler::addFriend(PDU* pdu)
+{
+    int ret;
+    memcpy(&ret, pdu->caData, sizeof (int));
+    qDebug() << "addFriend ret" << ret;
+    if(ret == 0){
+        QMessageBox::information(&Index::getInstance(), "添加好友", "用户不在线");
+    }else if(ret == -2){
+        QMessageBox::information(&Index::getInstance(), "添加好友", "该用户已经是好友");
+    }else if(ret == -1){
+        QMessageBox::information(&Index::getInstance(), "添加好友", "服务器错误：请联系开发人员");
+    }
+}
+
+void ResHandler::addFriendResend(PDU *pdu)
+{
+    char caName[32] = {'\0'};
+    memcpy(caName, pdu->caData, 32);
+    int ret = QMessageBox::question(&Index::getInstance(), "添加好友", QString("是否同意'%1'添加好友的请求？").arg(caName));
+    if(ret != QMessageBox::Yes){
+        return;
+    }
+    PDU* respdu = mkPDU();
+    memcpy(respdu->caData, pdu->caData, 64);
+    respdu->uiType = ENUM_TYPE_ADD_FRIEND_AGREE_REQUEST;
+    Client::getInstance().sendMsg(respdu);
+}
+
+
+
+void ResHandler::addFriendAgree(PDU* pdu)
+{
+    bool ret;
+    memcpy(&ret, pdu->caData, sizeof (bool));
+    if(ret){
+        QMessageBox::information(&Index::getInstance(), "添加好友", "添加好友成功");
+    }else{
+        QMessageBox::information(&Index::getInstance(), "添加好友", "添加好友失败");
+    }
 }

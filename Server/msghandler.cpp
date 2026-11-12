@@ -1,4 +1,5 @@
 #include "msghandler.h"
+#include "mytcpserver.h"
 #include "mytcpsocket.h"
 #include "operatedb.h"
 #include <QDebug>
@@ -17,11 +18,11 @@ PDU *MsgHandler::regist()
     memcpy(caPwd, pdu->caData+32, 32);
     qDebug() << "regist caName" << caName << "regist caPwd" << caPwd;
     //数据库操作类处理注册函数
-    bool res = OperateDB::getInstance().handleRegist(caName, caPwd);
-    qDebug() << "regist res" << res;
+    bool ret = OperateDB::getInstance().handleRegist(caName, caPwd);
+    qDebug() << "regist ret" << ret;
     //构建respdu，处理结果放进caData，注册响应类型赋值给消息类型
     PDU* respdu = mkPDU(0);
-    memcpy(respdu->caData, &res, sizeof (bool));
+    memcpy(respdu->caData, &ret, sizeof (bool));
     respdu->uiType = ENUM_TYPE_REGIST_RESPOND;
     return respdu;
 }
@@ -30,21 +31,21 @@ PDU *MsgHandler::findUser()
 {
     char caName[32] = {'\0'};
     memcpy(caName, pdu->caData, 32);
-    int res = OperateDB::getInstance().handleFindUser(caName);
-    qDebug() << "findUser res" << res;
+    int ret = OperateDB::getInstance().handleFindUser(caName);
+    qDebug() << "findUser ret" << ret;
     PDU* respdu = mkPDU();
-    memcpy(respdu->caData, &res, sizeof (int));
+    memcpy(respdu->caData, &ret, sizeof (int));
     respdu->uiType = ENUM_TYPE_FIND_USER_RESPOND;
     return respdu;
 }
 
 PDU *MsgHandler::onlineUser()
 {
-    QStringList res = OperateDB::getInstance().handleOnlineUser();
+    QStringList ret = OperateDB::getInstance().handleOnlineUser();
     //在线用户列表放在柔性数组里
-    PDU* respdu = mkPDU(res.size()*32);
-    for(int i = 0; i < res.size(); i++){
-        memcpy(respdu->caMsg + i*32,res[i].toStdString().c_str(), 32);
+    PDU* respdu = mkPDU(ret.size()*32);
+    for(int i = 0; i < ret.size(); i++){
+        memcpy(respdu->caMsg + i*32,ret[i].toStdString().c_str(), 32);
     }
     respdu->uiType = ENUM_TYPE_ONLINE_USER_RESPOND;
     return respdu;
@@ -56,13 +57,47 @@ PDU *MsgHandler::login(QString& m_strLoginName)
     memcpy(caName, pdu->caData, 32);
     char caPwd[32] = {'\0'};
     memcpy(caPwd, pdu->caData+32, 32);
-    bool res = OperateDB::getInstance().handleLogin(caName, caPwd);
-    qDebug() << "login res" << res;
-    if(res){
+    bool ret = OperateDB::getInstance().handleLogin(caName, caPwd);
+    qDebug() << "login ret" << ret;
+    if(ret){
         m_strLoginName = caName;
     }
     PDU* respdu = mkPDU(0);
-    memcpy(respdu->caData, &res, sizeof (bool));
+    memcpy(respdu->caData, &ret, sizeof (bool));
     respdu->uiType = ENUM_TYPE_LOGIN_RESPOND;
+    return respdu;
+}
+
+PDU *MsgHandler::addFriend()
+{
+    char caCurName[32] = {'\0'};
+    memcpy(caCurName, pdu->caData, 32);
+    char caTarName[32] = {'\0'};
+    memcpy(caTarName, pdu->caData+32, 32);
+    int ret = OperateDB::getInstance().handleAddFriend(caCurName, caTarName);
+    qDebug() << "addFriend ret " << ret;
+    if(ret == 1){//转发
+        pdu->uiType = ENUM_TYPE_ADD_FRIEND_RESEND;
+        MyTcpServer::getInstance().resendSocket(caTarName, pdu);
+        return NULL;
+    }
+    PDU* respdu = mkPDU();
+    respdu->uiType = ENUM_TYPE_ADD_FRIEND_RESPOND;
+    memcpy(respdu->caData, &ret, sizeof (int));
+    return respdu;
+}
+
+PDU *MsgHandler::addFriendAgree()
+{
+    char caCurName[32] = {'\0'};
+    memcpy(caCurName, pdu->caData, 32);
+    char caTarName[32] = {'\0'};
+    memcpy(caTarName, pdu->caData+32, 32);
+    bool ret = OperateDB::getInstance().handleAddFriendAgree(caCurName, caTarName);
+    qDebug() << "addFriendAgerr ret" << ret;
+    PDU* respdu = mkPDU();
+    respdu->uiType = ENUM_TYPE_ADD_FRIEND_AGREE_RESPOND;
+    memcpy(respdu->caData, &ret, sizeof (bool));
+    MyTcpServer::getInstance().resendSocket(caCurName, respdu);
     return respdu;
 }

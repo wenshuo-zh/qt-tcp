@@ -60,6 +60,14 @@ PDU *MyTcpSocket::handleMsg(PDU *pdu)
         respdu = m_pmh->onlineUser();
         break;
     }
+    case ENUM_TYPE_ADD_FRIEND_REQUEST:{
+        respdu = m_pmh->addFriend();
+        break;
+    }
+    case ENUM_TYPE_ADD_FRIEND_AGREE_REQUEST:{
+        respdu = m_pmh->addFriendAgree();
+        break;
+    }
     default:
         break;
     }

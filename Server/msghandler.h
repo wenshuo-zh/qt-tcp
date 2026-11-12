@@ -15,6 +15,8 @@ public:
     PDU* findUser();
     PDU* onlineUser();
     PDU* login(QString& strLoginName);
+    PDU* addFriend();
+    PDU* addFriendAgree();
 };
 
 #endif // MSGHANDLER_H

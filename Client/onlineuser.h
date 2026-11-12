@@ -2,6 +2,7 @@
 #define ONLINEUSER_H
 
 #include <QWidget>
+#include <qlistwidget.h>
 
 namespace Ui {
 class OnlineUser;
@@ -15,6 +16,9 @@ public:
     explicit OnlineUser(QWidget *parent = nullptr);
     void updateLW(QStringList userList);
     ~OnlineUser();
+
+private slots:
+    void on_listWidget_itemDoubleClicked(QListWidgetItem *item);
 
 private:
     Ui::OnlineUser *ui;

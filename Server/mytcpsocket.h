@@ -18,6 +18,7 @@ public:
     PDU* readMsg();
     PDU* handleMsg(PDU* pdu);
     void sendMsg(PDU* pdu);
+
 public slots:
     void recvMsg();
     void clientOffline();

@@ -114,6 +114,56 @@ QStringList OperateDB::handleOnlineUser()
     return res;
 }
 
+int OperateDB::handleAddFriend(const char *caCurName, const char *caTarName)
+{
+    //判空返回-1
+    if(caCurName == NULL || caTarName == NULL){
+        return -1;
+    }
+    QString sql = QString(R"(
+                          select * from friend
+                          where (friend_id = (select id from user_info where name = '%1')
+                          and user_id = (select id from user_info where name = '%2'))
+                          or (friend_id = (select id from user_info where name = '%2')
+                          and user_id = (select id from user_info where name = '%1'));
+                          )").arg(caCurName).arg(caTarName);
+    qDebug() << "添加好友前判断是否为好友 sql" << sql;
+    QSqlQuery q;
+    if(!q.exec(sql)){//sql执行失败返回-1
+        qDebug() << q.lastError();
+        return -1;
+    }
+    if(q.next()){//已是好友，返回-2
+        return -2;
+    }
+    sql = QString("select online from user_info where name = '%1'").arg(caTarName);
+    qDebug() << "添加好友前判断好友在线 sql" << sql;
+    if(!q.exec(sql)){//sql执行失败返回-1
+        qDebug() << q.lastError();
+        return -1;
+    }
+    if(q.next()){//返回在线情况，0/1
+        return q.value(0).toInt();
+    }
+    return -1;
+}
+
+bool OperateDB::handleAddFriendAgree(const char *caCurName, const char *caTarName)
+{
+    if(caCurName == NULL || caTarName == nullptr){
+        return false;
+    }
+    QString sql = QString(R"(
+                          insert into friend(friend_id, user_id)
+                          select u1.id, u2.id
+                          from user_info u1, user_info u2
+                          where u1.name = '%1' and u2.name = '%2'
+                          )").arg(caCurName).arg(caTarName);
+    qDebug() << "添加好友 sql" << sql;
+    QSqlQuery q;
+    return q.exec(sql);
+}
+
 
 
 OperateDB::~OperateDB()

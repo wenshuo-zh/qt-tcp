@@ -13,6 +13,7 @@ public:
     static MyTcpServer& getInstance();
     void incomingConnection(qintptr handle) override;
     void removeSocket(MyTcpSocket* mySocket);
+    void resendSocket(char* caTarName, PDU* pdu);
 private:
     MyTcpServer();
     MyTcpServer(const MyTcpServer& instance) = delete;
