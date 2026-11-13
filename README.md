@@ -1,55 +1,121 @@
-# Qt TCP 项目（开发中）
+# Qt TCP 聊天客户端/服务端
 
-基于 Qt 5.14.2、C++11 和 qmake 的客户端/服务端练习项目，目前仍在开发中。
+一个基于 Qt 和 TCP 的客户端/服务端聊天项目。客户端使用 Qt Widgets 构建图形界面，通过 TCP 与服务端通信，并结合 MySQL 管理用户信息、在线状态和好友关系。
 
-## 开发环境
+目前已实现用户注册登录、在线用户查询和基础好友管理；聊天消息与文件传输功能正在持续完善。
 
-- 开发工具（IDE）：Qt Creator 4.11.1。
-- Qt 库：Qt 5.14.2。
-- 构建套件（Kit）：Desktop Qt 5.14.2 MinGW 64-bit。
-- C++ 标准与构建工具：C++11、qmake。
+## 技术栈
 
-Qt Creator 与 Qt 库分别有自己的版本号；开发工具中显示的 4.11.1 是 Qt Creator 的版本。
+项目主要使用了哪些技术？
 
-## 工程
+| 领域 | 技术 | 用途 |
+| --- | --- | --- |
+| 语言 | C++11 | 编写客户端与服务端 |
+| 界面 | Qt Widgets、Qt Designer、QSS | 构建客户端图形界面并统一界面样式 |
+| 网络 | Qt Network、`QTcpSocket`、`QTcpServer` | 通过 TCP 建立连接并收发数据 |
+| 通信协议 | 自定义 PDU | 标记消息类型、长度和消息数据 |
+| 数据库 | MySQL、Qt SQL `QMYSQL` 驱动 | 保存用户信息、在线状态和好友关系 |
+| 构建 | qmake、MinGW | 管理和构建 Qt 工程 |
 
-- `Client/Client.pro`：Qt Widgets 客户端，使用 `QTcpSocket` 连接服务端。
-- `Server/Server.pro`：使用 `QTcpServer` 监听连接；当前不显示服务端窗口。
-- 两端通过各自的 `connect.config` 配置地址和端口，当前为 `127.0.0.1:5000`。
+## 功能介绍
 
-用 Qt Creator 分别打开两个 `.pro` 文件，选择 Qt 5.14.2 的 MinGW 64-bit Kit 构建。先运行 Server，再运行 Client；在应用程序输出中查看连接日志。
+目前可以完成账号和基础好友操作，界面中的聊天与文件入口仍待接入业务逻辑。
 
-## 数据库
+### 已实现
 
-项目服务端使用 Qt SQL 的 `QMYSQL` 驱动，默认数据库名为 `qt_project`。[`database/init.sql`](database/init.sql) 创建数据库及 `user_info`、`friend` 两张表，字段和外键按项目提供的结构定义；脚本不包含测试数据。
+- 用户注册与登录；同一账号在线时，服务端会拒绝重复登录。
+- 客户端断开连接后，服务端将该账号的在线状态更新为离线。
+- 查询用户在线状态，以及获取在线用户列表。
+- 发起好友申请；服务端转发申请，目标用户可以同意或拒绝。
+- 阻止用户添加自己；可以刷新在线好友列表或删除好友关系。刷新结果只包含在线好友，离线好友不会显示在列表中。
+- 登录页、好友页、文件页和在线用户窗口采用统一的暗紫色 QSS 样式。
 
-1. 在 MySQL 命令行客户端中运行 `SOURCE path/to/database/init.sql;`。脚本创建数据库和数据表，不会删除或清空已有数据。
-2. 将 `Server/database.ini.example` 复制为 `database.ini`，放到运行时 `Server.exe` 所在目录（Debug 构建通常是 `build-Server-.../debug/`）。
-3. 编辑本地 `database.ini`，填写 MySQL 主机、端口、用户名、密码和数据库名。该本地配置已加入 `.gitignore`，不要提交真实密码。
-4. 确保运行环境安装了与 Qt 版本、编译器和架构匹配的 `QMYSQL` 插件及其 MySQL 客户端依赖库。
+### 正在完善
 
-数据库配置项说明和后续维护约定见 [`database/README.md`](database/README.md)。
+- TCP 收包尚未完善半包、粘包处理；当前收包逻辑假定一次读取能取得完整 PDU。
+- 聊天页面和文件页面已有界面，但聊天消息、文件上传下载等业务流程尚未接入。
+- 好友申请、同意/拒绝、刷新和删除等处理已实现，完整的多客户端流程联调仍待完成。
 
-## 当前进度
+## 项目架构
 
-更新日期：2026-11-13。
+客户端负责显示界面、发送请求并处理服务端响应。服务端接收每个客户端的 TCP 连接，根据 PDU 消息类型分发请求；需要读写用户或好友数据时，再通过 Qt SQL 访问 MySQL。
 
-- 已完成：客户端读取资源配置、通过单例获取窗口并发起 TCP 连接；服务端监听连接、创建 `MyTcpSocket` 并保存到列表。
-- 已编写：两端的 PDU 协议结构、消息类型枚举和 `mkPDU()` 动态分配函数。
-- 已编写：服务端 `OperateDB` 单例和 `QMYSQL` 连接配置；数据库初始化脚本包含 `user_info`、`friend` 表结构。
-- 已搭建：客户端注册/登录界面，包含用户名、密码输入框及注册、登录按钮。
-- 已编写：客户端注册按钮组装并发送注册请求；服务端按请求类型调用数据库注册处理，检查用户名并尝试写入用户信息，再发送注册响应。
-- 已编写：客户端接收注册和登录响应并显示结果；服务端登录时以数据库条件更新在线状态，阻止同一账号重复登录。
-- 已搭建：首页、好友页和文件页的界面框架；登录成功后显示首页，可切换好友页和文件页。
-- 已优化：客户端登录页、主界面、好友页、文件页和在线用户窗采用统一暗黑紫色主题；通过共享 QSS 设置控件配色与交互状态，并使用 Microsoft Fluent System Icons 的聊天图标作为窗口图标。
-- 已编写：好友页的用户查询请求；服务端查询用户在线状态并区分在线、离线、用户不存在和查询失败后返回结果。
-- 已编写：在线用户列表请求与响应；服务端查询在线用户名并返回，客户端解析后更新在线用户窗口。
-- 已编写：双击在线用户发起好友请求；客户端和服务端拦截添加自己，服务端检查好友/在线状态并转发请求；目标用户可同意或拒绝，同意后写入好友表并通知双方。
-- 已编写：好友页刷新在线好友列表、删除选中好友；添加好友成功或删除好友成功后刷新当前客户端的好友列表。
-- 已整理：客户端响应处理和服务端请求处理分别封装到 `ResHandler`、`MsgHandler`；socket 类负责收发及连接状态。
-- 已编写：客户端断开连接时服务端处理用户离线状态，并从连接列表移除对应 socket。
-- 安全配置：数据库连接参数从运行目录中的本地 `database.ini` 读取；仓库只保留不含真实密码的示例配置。
-- 验证情况：MySQL 驱动已在本机 Qt 5.14.2 环境验证可加载；客户端 Debug 和服务端 Release 已构建通过，好友功能尚未完成完整联调验证。
-- 未完成：文件业务目前只有界面框架，尚未接入服务端功能。
-- 已编写：客户端组装 PDU 发送消息，服务端通过 `readyRead` 触发接收槽函数并输出调试信息；TCP 半包、粘包处理尚未完成。
+```mermaid
+flowchart LR
+    A[客户端 A<br/>Qt Widgets / QTcpSocket / ResHandler]
+    B[客户端 B<br/>Qt Widgets / QTcpSocket / ResHandler]
+    S[MyTcpServer<br/>QTcpServer 连接管理]
+    SA[MyTcpSocket A]
+    SB[MyTcpSocket B]
+    M[MsgHandler<br/>业务请求处理]
+    O[OperateDB<br/>数据库操作]
+    Q[Qt SQL / QMYSQL]
+    DB[(MySQL<br/>user_info / friend)]
 
+    A <-->|TCP / PDU| SA
+    B <-->|TCP / PDU| SB
+    S -->|管理连接| SA
+    S -->|管理连接| SB
+    SA <-->|请求与响应| M
+    M -->|数据库操作| O
+    O --> Q
+    Q <--> DB
+    M -.->|好友申请转发| S
+    S -.->|发送至目标连接| SB
+```
+
+PDU 定义在客户端和服务端各自的 `protocol.h` 中。固定部分由 `uiTotalLen`、`uiMsgLen`、`uiType` 三个 `uint` 字段和 `caData[64]` 组成；可变消息区是 `caMsg[]`，其长度由 `uiMsgLen` 表示。客户端通过 `ResHandler` 处理响应，服务端由 `MsgHandler` 处理业务请求，再调用 `OperateDB` 访问数据库。当前接收逻辑尚未完整处理 TCP 半包和粘包。
+
+## 项目截图
+
+主要功能完善后，将补充客户端登录、好友管理和聊天界面的实际运行截图。
+
+## 项目目录结构
+
+```text
+.
+├── Client/
+│   ├── Client.pro          # 客户端 qmake 工程
+│   ├── main.cpp            # 客户端程序入口
+│   ├── client.*            # 登录界面、TCP 连接和消息分发
+│   ├── protocol.*          # PDU 结构与消息类型
+│   ├── reshandler.*        # 服务端响应处理
+│   ├── index.*             # 登录后的主界面
+│   ├── friend.*            # 好友页及好友操作
+│   ├── onlineuser.*        # 在线用户窗口
+│   ├── file.*              # 文件页界面框架，业务尚未接入
+│   ├── client.qss          # 客户端主题样式
+│   ├── config.qrc          # 客户端内嵌资源
+│   └── connect.config      # 客户端目标地址与端口
+├── Server/
+│   ├── Server.pro          # 服务端 qmake 工程
+│   ├── main.cpp            # 服务端程序入口
+│   ├── server.*            # 服务端启动与监听配置
+│   ├── mytcpserver.*       # 接入连接与管理客户端 socket
+│   ├── mytcpsocket.*       # 单个客户端连接的收发处理
+│   ├── msghandler.*        # 注册、登录、查询和好友请求处理
+│   ├── operatedb.*         # MySQL 连接与数据操作
+│   ├── protocol.*          # PDU 结构与消息类型
+│   ├── database.ini.example # 本地数据库配置示例
+│   ├── config.qrc          # 服务端内嵌连接配置
+│   └── connect.config      # 服务端监听地址与端口
+├── database/
+│   ├── init.sql            # 数据库和数据表初始化
+│   └── README.md           # 数据库说明
+├── docs/
+│   └── BUILD.md            # 环境配置、编译与运行指南
+├── README.md               # 项目介绍
+└── CHANGELOG.md            # 项目开发日志
+```
+
+## 运行项目
+
+想在本地运行这个项目？环境准备、数据库初始化、配置和编译步骤已单独整理。
+
+👉 [查看编译与运行指南](docs/BUILD.md)
+
+## 开发日志
+
+想了解项目经历了哪些功能迭代？
+
+👉 [查看完整开发日志](CHANGELOG.md)
