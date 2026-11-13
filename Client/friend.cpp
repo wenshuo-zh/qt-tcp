@@ -12,12 +12,27 @@ Friend::Friend(QWidget *parent) :
 {
     ui->setupUi(this);
     m_pOnlineUser = new OnlineUser;
+    flushFriend();
 }
 
 Friend::~Friend()
 {
     delete ui;
     delete m_pOnlineUser;
+}
+
+void Friend::flushFriend()
+{
+    PDU* pdu = mkPDU();
+    pdu->uiType = ENUM_TYPE_FLUSH_FRIEND_REQUEST;
+    memcpy(pdu->caData, Client::getInstance().m_strLoginName.toStdString().c_str(), 32);
+    Client::getInstance().sendMsg(pdu);
+}
+
+void Friend::update_LW(QStringList friendList)
+{
+    ui->listWidget->clear();
+    ui->listWidget->addItems(friendList);
 }
 
 void Friend::on_findUser_PB_clicked()
@@ -42,4 +57,28 @@ void Friend::on_onlineUser_PB_clicked()
     PDU* pdu = mkPDU();
     pdu->uiType = ENUM_TYPE_ONLINE_USER_REQUEST;
     Client::getInstance().sendMsg(pdu);
+}
+
+void Friend::on_flush_PB_clicked()
+{
+    flushFriend();
+}
+
+void Friend::on_del_PB_clicked()
+{
+   QListWidgetItem* pItem = ui->listWidget->currentItem();
+   if(!pItem){
+       return;
+   }
+   QString strTarName = pItem->text();
+   int ret = QMessageBox::question(this, "删除好友", QString("是否确认删除好友 %1").arg(strTarName));
+   if(ret != QMessageBox::Yes){
+       return;
+   }
+   PDU* pdu = mkPDU();
+   pdu->uiType = ENUM_TYPE_DELETE_FRIEND_REQUEST;
+   QString strCurName = Client::getInstance().m_strLoginName;
+   memcpy(pdu->caData, strCurName.toStdString().c_str(), 32);
+   memcpy(pdu->caData+32, strTarName.toStdString().c_str(), 32);
+   Client::getInstance().sendMsg(pdu);
 }

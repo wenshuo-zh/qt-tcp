@@ -17,6 +17,9 @@ public:
     PDU* login(QString& strLoginName);
     PDU* addFriend();
     PDU* addFriendAgree();
+    PDU* addFriendRefuse();
+    PDU* flushFriend();
+    PDU* deleteFriend();
 };
 
 #endif // MSGHANDLER_H

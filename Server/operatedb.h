@@ -24,6 +24,10 @@ public:
     int handleAddFriend(const char* caCurName, const char* caTarName);
     //处理同意添加好友
     bool handleAddFriendAgree(const char *caCurName, const char *caTarName);
+    //处理刷新好友
+    QStringList handleFlushFriend(const char* caCurName);
+    //处理删除好友
+    bool handleDeleteFriend(const char* caCurName, const char* caTarName);
     ~OperateDB();
 private:
     explicit OperateDB(QObject *parent = nullptr);

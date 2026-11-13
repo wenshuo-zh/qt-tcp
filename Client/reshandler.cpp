@@ -74,6 +74,8 @@ void ResHandler::addFriend(PDU* pdu)
         QMessageBox::information(&Index::getInstance(), "添加好友", "用户不在线");
     }else if(ret == -2){
         QMessageBox::information(&Index::getInstance(), "添加好友", "该用户已经是好友");
+    }else if(ret == -3){
+        QMessageBox::warning(&Index::getInstance(), "添加好友", "不能添加自己为好友！");
     }else if(ret == -1){
         QMessageBox::information(&Index::getInstance(), "添加好友", "服务器错误：请联系开发人员");
     }
@@ -84,12 +86,13 @@ void ResHandler::addFriendResend(PDU *pdu)
     char caName[32] = {'\0'};
     memcpy(caName, pdu->caData, 32);
     int ret = QMessageBox::question(&Index::getInstance(), "添加好友", QString("是否同意'%1'添加好友的请求？").arg(caName));
-    if(ret != QMessageBox::Yes){
-        return;
-    }
     PDU* respdu = mkPDU();
     memcpy(respdu->caData, pdu->caData, 64);
-    respdu->uiType = ENUM_TYPE_ADD_FRIEND_AGREE_REQUEST;
+    if(ret != QMessageBox::Yes){
+        respdu->uiType = ENUM_TYPE_ADD_FRIEND_REFUSE_REQUEST;
+    }else {
+        respdu->uiType = ENUM_TYPE_ADD_FRIEND_AGREE_REQUEST;
+    }
     Client::getInstance().sendMsg(respdu);
 }
 
@@ -101,7 +104,37 @@ void ResHandler::addFriendAgree(PDU* pdu)
     memcpy(&ret, pdu->caData, sizeof (bool));
     if(ret){
         QMessageBox::information(&Index::getInstance(), "添加好友", "添加好友成功");
+        Index::getInstance().getFriend()->flushFriend();
     }else{
         QMessageBox::information(&Index::getInstance(), "添加好友", "添加好友失败");
+    }
+}
+
+void ResHandler::addFriendRefuse()
+{
+    QMessageBox::information(&Index::getInstance(), "添加好友失败", "对方拒绝你的好友申请");
+}
+
+void ResHandler::flushFriend(PDU* pdu)
+{
+    QStringList friendList;
+    uint iSize = pdu->uiMsgLen / 32;
+    char caTmp[32] = {'\0'};
+    for(uint i = 0; i < iSize; i++){
+        memcpy(caTmp, pdu->caMsg + i*32, 32);
+        friendList.append(caTmp);
+    }
+    Index::getInstance().getFriend()->update_LW(friendList);
+}
+
+void ResHandler::deleteFriend(PDU *pdu)
+{
+    bool ret;
+    memcpy(&ret, pdu->caData, sizeof (bool));
+    if(ret){
+        QMessageBox::information(&Index::getInstance(), "删除好友", "删除好友成功");
+        Index::getInstance().getFriend()->flushFriend();
+    }else{
+        QMessageBox::information(&Index::getInstance(), "删除好友", "删除好友失败");
     }
 }

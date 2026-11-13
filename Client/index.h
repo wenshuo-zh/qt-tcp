@@ -18,6 +18,7 @@ public:
     static Index& getInstance();
     Friend* getFriend();
     File* getFile();
+    void setUserName(QString name);
     ~Index();
 
 private slots:

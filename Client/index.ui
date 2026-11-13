@@ -6,85 +6,154 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>575</width>
-    <height>386</height>
+    <width>980</width>
+    <height>660</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>820</width>
+    <height>560</height>
+   </size>
+  </property>
   <property name="windowTitle">
-   <string>首页</string>
+   <string>客户端</string>
   </property>
-  <property name="windowIcon">
-   <iconset>
-    <normaloff>C:/Users/Lenovo/Desktop/1/hj.jpg</normaloff>C:/Users/Lenovo/Desktop/1/hj.jpg</iconset>
-  </property>
-  <widget class="QWidget" name="">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>10</y>
-     <width>541</width>
-     <height>361</height>
-    </rect>
+  <layout class="QVBoxLayout" name="rootLayout">
+   <property name="spacing">
+    <number>0</number>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="leftMargin">
+    <number>16</number>
+   </property>
+   <property name="topMargin">
+    <number>16</number>
+   </property>
+   <property name="rightMargin">
+    <number>16</number>
+   </property>
+   <property name="bottomMargin">
+    <number>16</number>
+   </property>
+   <item>
+    <widget class="QWidget" name="">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>14</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
-       <widget class="QPushButton" name="friend_PB">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <property name="spacing">
+         <number>10</number>
         </property>
-        <property name="font">
-         <font>
-          <family>Agency FB</family>
-          <pointsize>18</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>好
-友</string>
-        </property>
-       </widget>
+        <item>
+         <widget class="QPushButton" name="friend_PB">
+          <property name="minimumSize">
+           <size>
+            <width>118</width>
+            <height>52</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>118</width>
+            <height>52</height>
+           </size>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="autoExclusive">
+           <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <property name="text">
+           <string>好友</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="file_PB">
+          <property name="minimumSize">
+           <size>
+            <width>118</width>
+            <height>52</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>118</width>
+            <height>52</height>
+           </size>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="autoExclusive">
+           <bool>true</bool>
+          </property>
+          <property name="text">
+           <string>文件</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="navigationSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
       </item>
       <item>
-       <widget class="QPushButton" name="file_PB">
+       <widget class="QStackedWidget" name="stackedWidget">
+        <property name="minimumSize">
+         <size>
+          <width>620</width>
+          <height>500</height>
+         </size>
+        </property>
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>1</horstretch>
+          <verstretch>1</verstretch>
          </sizepolicy>
         </property>
-        <property name="font">
-         <font>
-          <family>Agency FB</family>
-          <pointsize>18</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>文
-件</string>
-        </property>
+        <widget class="Friend" name="friendPage"/>
+        <widget class="File" name="filePage"/>
        </widget>
       </item>
      </layout>
-    </item>
-    <item>
-     <widget class="QStackedWidget" name="stackedWidget">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <widget class="Friend" name="friendPage"/>
-      <widget class="File" name="filePage"/>
-     </widget>
-    </item>
-   </layout>
-  </widget>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <customwidgets>
   <customwidget>

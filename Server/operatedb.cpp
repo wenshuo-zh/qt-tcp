@@ -58,16 +58,18 @@ bool OperateDB::handleLogin(const char *caName, const char *caPwd)
     if(caName == NULL || caPwd == NULL){
         return false;
     }
-    QString sql = QString("select * from user_info where name = '%1' and pwd = '%2'").arg(caName).arg(caPwd);
-    qDebug() << "查找用户名和密码是否存在 sql" << sql;
     QSqlQuery q;
-    if(!q.exec(sql) || !q.next()){
+    q.prepare("update user_info set online = 1 "
+              "where name = :name and pwd = :pwd and online = 0");
+    q.bindValue(":name", caName);
+    q.bindValue(":pwd", caPwd);
+    if(!q.exec()){
+        qDebug() << "登录更新失败" << q.lastError().text();
         return false;
     }
-    //更新在线状态
-    sql = QString("update user_info set online=1 where name='%1'").arg(caName);
-    qDebug() << "将用户的online字段置为1 sql" << sql;
-    return q.exec(sql);
+    bool ret = q.numRowsAffected() == 1;
+    qDebug() << "handleLogin ret" << ret << "affected rows" << q.numRowsAffected();
+    return ret;
 }
 
 void OperateDB::handleOffline(const char *caName)
@@ -120,6 +122,9 @@ int OperateDB::handleAddFriend(const char *caCurName, const char *caTarName)
     if(caCurName == NULL || caTarName == NULL){
         return -1;
     }
+    if(QString(caCurName) == QString(caTarName)){
+        return -3;
+    }
     QString sql = QString(R"(
                           select * from friend
                           where (friend_id = (select id from user_info where name = '%1')
@@ -160,6 +165,53 @@ bool OperateDB::handleAddFriendAgree(const char *caCurName, const char *caTarNam
                           where u1.name = '%1' and u2.name = '%2'
                           )").arg(caCurName).arg(caTarName);
     qDebug() << "添加好友 sql" << sql;
+    QSqlQuery q;
+    return q.exec(sql);
+}
+
+QStringList OperateDB::handleFlushFriend(const char *caCurName)
+{
+    QStringList res;
+    if(caCurName == NULL){
+        return res;
+    }
+    QString sql = QString(R"(
+                          select name from user_info
+                          where id in (
+                            select friend_id from friend where user_id = (select id from user_info where name = '%1')
+                            union
+                            select user_id from friend where friend_id = (select id from user_info where name = '%1')
+                          ) and online = 1
+                          )").arg(caCurName);
+    qDebug() << "刷新在线好友 sql" << sql;
+    QSqlQuery q;
+    q.exec(sql);
+    while(q.next()){
+        res.append(q.value(0).toString());
+    }
+    return res;
+}
+
+bool OperateDB::handleDeleteFriend(const char *caCurName, const char *caTarName)
+{
+    if(caCurName == NULL || caTarName == nullptr){
+        return false;
+    }
+    QString sql = QString(R"(
+        delete from friend where
+        (
+            user_id=(select id from user_info where name='%1')
+            and
+            friend_id=(select id from user_info where name='%2')
+        )
+        or
+        (
+            friend_id=(select id from user_info where name='%1')
+            and
+            user_id=(select id from user_info where name='%2')
+        );
+    )").arg(caCurName).arg(caTarName);
+    qDebug() << "删除好友 sql" << sql;
     QSqlQuery q;
     return q.exec(sql);
 }

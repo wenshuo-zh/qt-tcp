@@ -24,6 +24,11 @@ File *Index::getFile()
     return ui->filePage;
 }
 
+//void Index::setUserName(QString name)
+//{
+//    ui->curUser_LB->setText(name);
+//}
+
 
 
 Index::~Index()

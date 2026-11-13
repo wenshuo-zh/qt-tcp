@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>connect.config</file>
+        <file>client.qss</file>
+        <file>Assets/chat-icon.svg</file>
     </qresource>
 </RCC>

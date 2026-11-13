@@ -83,6 +83,18 @@ void Client::handleMsg(PDU *pdu)
         m_prh->addFriendAgree(pdu);
         break;
     }
+    case ENUM_TYPE_ADD_FRIEND_REFUSE_RESPOND:{
+        m_prh->addFriendRefuse();
+        break;
+    }
+    case ENUM_TYPE_FLUSH_FRIEND_RESPOND:{
+        m_prh->flushFriend(pdu);
+        break;
+    }
+    case ENUM_TYPE_DELETE_FRIEND_RESPOND:{
+        m_prh->deleteFriend(pdu);
+        break;
+    }
     default:{
         break;
     }

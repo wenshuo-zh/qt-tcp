@@ -47,7 +47,6 @@ PDU *MyTcpSocket::handleMsg(PDU *pdu)
         respdu = m_pmh->regist();
         break;
     }
-
     case ENUM_TYPE_LOGIN_REQUEST:{
         respdu = m_pmh->login(m_strLoginName);
         break;
@@ -66,6 +65,18 @@ PDU *MyTcpSocket::handleMsg(PDU *pdu)
     }
     case ENUM_TYPE_ADD_FRIEND_AGREE_REQUEST:{
         respdu = m_pmh->addFriendAgree();
+        break;
+    }
+    case ENUM_TYPE_ADD_FRIEND_REFUSE_REQUEST:{
+        respdu = m_pmh->addFriendRefuse();
+        break;
+    }
+    case ENUM_TYPE_FLUSH_FRIEND_REQUEST:{
+        respdu = m_pmh->flushFriend();
+        break;
+    }
+    case ENUM_TYPE_DELETE_FRIEND_REQUEST:{
+        respdu = m_pmh->deleteFriend();
         break;
     }
     default:

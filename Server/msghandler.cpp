@@ -101,3 +101,39 @@ PDU *MsgHandler::addFriendAgree()
     MyTcpServer::getInstance().resendSocket(caCurName, respdu);
     return respdu;
 }
+
+PDU *MsgHandler::addFriendRefuse()
+{
+    char caCurName[32] = {'\0'};
+    memcpy(caCurName, pdu->caData, 32);
+    PDU* respdu = mkPDU();
+    respdu->uiType = ENUM_TYPE_ADD_FRIEND_REFUSE_RESPOND;
+    memcpy(respdu->caData, caCurName, 32);
+    MyTcpServer::getInstance().resendSocket(caCurName, respdu);
+    return NULL;
+}
+
+PDU *MsgHandler::flushFriend()
+{
+    QStringList res = OperateDB::getInstance().handleFlushFriend(pdu->caData);
+    PDU* respdu = mkPDU(res.size()*32);
+    respdu->uiType = ENUM_TYPE_FLUSH_FRIEND_RESPOND;
+    for(int i = 0; i < res.size(); i++){
+        memcpy(respdu->caMsg + i*32, res[i].toStdString().c_str(), 32);
+    }
+    return respdu;
+}
+
+PDU *MsgHandler::deleteFriend()
+{
+    char caCurName[32] = {'\0'};
+    memcpy(caCurName, pdu->caData, 32);
+    char caTarName[32] = {'\0'};
+    memcpy(caTarName, pdu->caData+32, 32);
+    bool ret = OperateDB::getInstance().handleDeleteFriend(caCurName, caTarName);
+    qDebug() << "deleteFriend ret" << ret;
+    PDU* respdu = mkPDU();
+    respdu->uiType = ENUM_TYPE_DELETE_FRIEND_RESPOND;
+    memcpy(respdu->caData, &ret, sizeof (bool));
+    return respdu;
+}
