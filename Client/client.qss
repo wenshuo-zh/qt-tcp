@@ -13,7 +13,8 @@ QWidget#OnlineUser {
 }
 
 QWidget#Friend,
-QWidget#File {
+QWidget#File,
+QWidget#Chat {
     background-color: #1b1922;
 }
 
@@ -198,6 +199,20 @@ QListWidget {
     border: 1px solid #393541;
     border-radius: 7px;
     outline: 0;
+}
+
+QTextEdit#show_TE {
+    padding: 10px;
+    color: #e8e4ef;
+    background-color: #19171f;
+    border: 1px solid #393541;
+    border-radius: 7px;
+    selection-background-color: #8054cf;
+}
+
+QPushButton#send_PB {
+    min-width: 92px;
+    min-height: 40px;
 }
 
 QListWidget::item {

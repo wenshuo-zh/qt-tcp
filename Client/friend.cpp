@@ -91,7 +91,7 @@ void Friend::on_chat_PB_clicked()
     if(!pItem){
         return;
     }
-    m_pChat->m_strChatName = pItem->text();
+    m_pChat->switchChat(pItem->text());
     if(m_pChat->isHidden()){
         m_pChat->show();
     }

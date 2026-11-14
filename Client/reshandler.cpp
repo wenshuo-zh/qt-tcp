@@ -152,17 +152,24 @@ void ResHandler::chat(PDU *pdu)
     QString strTarName = QString::fromUtf8(caTarName);
     //当前登录用户
     QString strLoginName = Client::getInstance().m_strLoginName;
-    //聊天对象
-    QString strChatName;
-    if(strLoginName == strFromName){//当前是发送者，聊天对象是接收者
-        strChatName = strTarName;
-    }else{//当前是接受者，聊天对象是发送者
-        strChatName = strFromName;
+    if(strTarName != strLoginName){
+        return;
     }
 
-    c->m_strChatName = strChatName;
+    //构造msg结构体
+    ChatMessage msg;
+    msg.sender = strFromName;
+    msg.content = QString::fromUtf8(pdu->caMsg);
+    msg.isMine = false;
+    c->addChatMessage(strFromName, msg);
+
+    if(c->m_strChatName == strFromName && !c->isHidden()){
+        c->appendMessage(msg);
+    }else if(c->isHidden() || c->m_strChatName.isEmpty()){
+        //窗口隐藏或尚无当前会话时，切换到发送者并显示历史消息
+        c->switchChat(strFromName);
+    }
     if(c->isHidden()){
         c->show();
     }
-    c->updateShow_TE(QString("%1 : %2").arg(strFromName).arg(QString::fromUtf8(pdu->caMsg)));
 }
