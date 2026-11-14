@@ -12,6 +12,7 @@ Friend::Friend(QWidget *parent) :
 {
     ui->setupUi(this);
     m_pOnlineUser = new OnlineUser;
+    m_pChat = new Chat;
     flushFriend();
 }
 
@@ -19,6 +20,7 @@ Friend::~Friend()
 {
     delete ui;
     delete m_pOnlineUser;
+    delete m_pChat;
 }
 
 void Friend::flushFriend()
@@ -81,4 +83,16 @@ void Friend::on_del_PB_clicked()
    memcpy(pdu->caData, strCurName.toStdString().c_str(), 32);
    memcpy(pdu->caData+32, strTarName.toStdString().c_str(), 32);
    Client::getInstance().sendMsg(pdu);
+}
+
+void Friend::on_chat_PB_clicked()
+{
+    QListWidgetItem* pItem = ui->listWidget->currentItem();
+    if(!pItem){
+        return;
+    }
+    m_pChat->m_strChatName = pItem->text();
+    if(m_pChat->isHidden()){
+        m_pChat->show();
+    }
 }

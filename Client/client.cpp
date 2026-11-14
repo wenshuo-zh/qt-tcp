@@ -95,6 +95,10 @@ void Client::handleMsg(PDU *pdu)
         m_prh->deleteFriend(pdu);
         break;
     }
+    case ENUM_TYPE_CHAT_RESEND:{
+        m_prh->chat(pdu);
+        break;
+    }
     default:{
         break;
     }

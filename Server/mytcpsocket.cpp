@@ -79,6 +79,10 @@ PDU *MyTcpSocket::handleMsg(PDU *pdu)
         respdu = m_pmh->deleteFriend();
         break;
     }
+    case ENUM_TYPE_CHAT_REQUEST:{
+        respdu = m_pmh->chat();
+        break;
+    }
     default:
         break;
     }

@@ -137,3 +137,12 @@ PDU *MsgHandler::deleteFriend()
     memcpy(respdu->caData, &ret, sizeof (bool));
     return respdu;
 }
+
+PDU *MsgHandler::chat()
+{
+    char caTarName[32] = {'\0'};
+    memcpy(caTarName, pdu->caData+32, 32);
+    pdu->uiType = ENUM_TYPE_CHAT_RESEND;
+    MyTcpServer::getInstance().resendSocket(caTarName, pdu);
+    return NULL;
+}

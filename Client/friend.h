@@ -1,6 +1,7 @@
 #ifndef FRIEND_H
 #define FRIEND_H
 
+#include "chat.h"
 #include "onlineuser.h"
 
 #include <QWidget>
@@ -16,6 +17,7 @@ class Friend : public QWidget
 public:
     explicit Friend(QWidget *parent = nullptr);
     OnlineUser *m_pOnlineUser;
+    Chat* m_pChat;
     ~Friend();
     void flushFriend();
     void update_LW(QStringList friendList);
@@ -29,6 +31,8 @@ private slots:
     void on_flush_PB_clicked();
 
     void on_del_PB_clicked();
+
+    void on_chat_PB_clicked();
 
 private:
     Ui::Friend *ui;

@@ -138,3 +138,15 @@ void ResHandler::deleteFriend(PDU *pdu)
         QMessageBox::information(&Index::getInstance(), "删除好友", "删除好友失败");
     }
 }
+
+void ResHandler::chat(PDU *pdu)
+{
+    Chat* c = Index::getInstance().getFriend()->m_pChat;
+    if(c->isHidden()){
+        c->show();
+    }
+    char caChatName[32] = {'\0'};
+    memcpy(caChatName, pdu->caData, 32);
+    c->updateShow_TE(QString("%1 : %2").arg(caChatName).arg(pdu->caMsg));
+    c->m_strChatName = caChatName;
+}

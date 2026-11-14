@@ -20,6 +20,7 @@ public:
     PDU* addFriendRefuse();
     PDU* flushFriend();
     PDU* deleteFriend();
+    PDU* chat();
 };
 
 #endif // MSGHANDLER_H
