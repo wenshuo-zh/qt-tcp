@@ -142,11 +142,27 @@ void ResHandler::deleteFriend(PDU *pdu)
 void ResHandler::chat(PDU *pdu)
 {
     Chat* c = Index::getInstance().getFriend()->m_pChat;
+    char caCurName[33] = {'\0'};
+    memcpy(caCurName, pdu->caData, 32);
+    char caTarName[33] = {'\0'};
+    memcpy(caTarName, pdu->caData+32, 32);
+    //发送者用户名
+    QString strFromName = QString::fromUtf8(caCurName);
+    //接收者用户名
+    QString strTarName = QString::fromUtf8(caTarName);
+    //当前登录用户
+    QString strLoginName = Client::getInstance().m_strLoginName;
+    //聊天对象
+    QString strChatName;
+    if(strLoginName == strFromName){//当前是发送者，聊天对象是接收者
+        strChatName = strTarName;
+    }else{//当前是接受者，聊天对象是发送者
+        strChatName = strFromName;
+    }
+
+    c->m_strChatName = strChatName;
     if(c->isHidden()){
         c->show();
     }
-    char caChatName[32] = {'\0'};
-    memcpy(caChatName, pdu->caData, 32);
-    c->updateShow_TE(QString("%1 : %2").arg(caChatName).arg(pdu->caMsg));
-    c->m_strChatName = caChatName;
+    c->updateShow_TE(QString("%1 : %2").arg(strFromName).arg(QString::fromUtf8(pdu->caMsg)));
 }

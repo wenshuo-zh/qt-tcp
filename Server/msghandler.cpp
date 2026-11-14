@@ -140,9 +140,14 @@ PDU *MsgHandler::deleteFriend()
 
 PDU *MsgHandler::chat()
 {
-    char caTarName[32] = {'\0'};
+    char caCurName[33] = {'\0'};
+    memcpy(caCurName, pdu->caData, 32);
+    char caTarName[33] = {'\0'};
     memcpy(caTarName, pdu->caData+32, 32);
     pdu->uiType = ENUM_TYPE_CHAT_RESEND;
+    //发送给目标方
     MyTcpServer::getInstance().resendSocket(caTarName, pdu);
+    //回发给发送方
+    MyTcpServer::getInstance().resendSocket(caCurName, pdu);
     return NULL;
 }
