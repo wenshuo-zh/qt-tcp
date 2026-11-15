@@ -173,3 +173,14 @@ void ResHandler::chat(PDU *pdu)
         c->show();
     }
 }
+
+void ResHandler::mkdir(PDU *pdu)
+{
+    bool ret;
+    memcpy(&ret, pdu->caData, sizeof(bool));
+    if(ret){
+        QMessageBox::information(&Index::getInstance(), "新建文件夹", "新建文件夹成功");
+    }else{
+        QMessageBox::information(&Index::getInstance(), "新建文件夹", "新建文件夹失败");
+    }
+}

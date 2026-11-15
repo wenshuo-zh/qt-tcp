@@ -18,6 +18,7 @@ class Client : public QWidget
 public:
     QString m_strIp;
     quint16 m_usPort;
+    QString m_strRootPath;
     QTcpSocket m_socket;
     QString m_strLoginName;
     ResHandler* m_prh;

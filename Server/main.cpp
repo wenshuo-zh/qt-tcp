@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     OperateDB::getInstance().connectSQL();
-    Server w;
+    Server::getInstance();
     //w.show();
     return a.exec();
 }

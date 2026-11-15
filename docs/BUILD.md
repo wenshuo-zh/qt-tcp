@@ -79,7 +79,9 @@ Copy-Item .\Server\database.ini.example (Join-Path $serverExeDir "database.ini")
 
 ## 配置 TCP 地址
 
-客户端目标地址和服务端监听地址分别保存在 [`../Client/connect.config`](../Client/connect.config) 与 [`../Server/connect.config`](../Server/connect.config)，这两个配置由 qrc 编入程序。仓库默认值均为 `127.0.0.1:5000`，适用于同一台电脑上的客户端和服务端。
+客户端目标地址和服务端监听地址分别保存在 [`../Client/connect.config`](../Client/connect.config) 与 [`../Server/connect.config`](../Server/connect.config)，这两个配置由 qrc 编入程序。每个文件按顺序包含三行：IP 地址、端口、文件根目录。仓库默认值为 `127.0.0.1`、`5000` 和 `./filesys`。
+
+新建文件夹请求会把客户端配置中的文件根目录和当前用户名组成的目录路径发送给服务端；服务端按其进程的当前工作目录解释相对路径。客户端和服务端配置中的文件根目录应保持一致，并确保服务端启动目录下的根目录可用。当前文件页只接入了创建目录请求，其他文件操作尚未实现。
 
 如需在不同主机间连接，按实际部署修改客户端的服务端地址和服务端的监听地址，确保端口配置一致，然后重新构建对应工程。
 

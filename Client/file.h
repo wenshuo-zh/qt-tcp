@@ -12,8 +12,13 @@ class File : public QWidget
     Q_OBJECT
 
 public:
+    QString m_strUserPath;
+    QString m_strCurPath;
     explicit File(QWidget *parent = nullptr);
     ~File();
+
+private slots:
+    void on_mkdir_PB_clicked();
 
 private:
     Ui::File *ui;

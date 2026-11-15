@@ -2,7 +2,9 @@
 #include "mytcpserver.h"
 #include "mytcpsocket.h"
 #include "operatedb.h"
+#include "server.h"
 #include <QDebug>
+#include <QDir>
 #include<string>
 MsgHandler::MsgHandler()
 {
@@ -20,6 +22,12 @@ PDU *MsgHandler::regist()
     //数据库操作类处理注册函数
     bool ret = OperateDB::getInstance().handleRegist(caName, caPwd);
     qDebug() << "regist ret" << ret;
+    //注册时创建用户文件夹
+    if(ret){
+        QDir dir;
+        bool res = dir.mkdir(QString("%1/%2").arg(Server::getInstance().m_strRootPath).arg(caName));
+        qDebug() << "创建用户文件夹 res" << res;
+    }
     //构建respdu，处理结果放进caData，注册响应类型赋值给消息类型
     PDU* respdu = mkPDU(0);
     memcpy(respdu->caData, &ret, sizeof (bool));
@@ -150,4 +158,17 @@ PDU *MsgHandler::chat()
     //回发给发送方
     MyTcpServer::getInstance().resendSocket(caCurName, pdu);
     return NULL;
+}
+
+PDU *MsgHandler::mkdir()
+{
+    QString strPath = QString("%1/%2").arg(pdu->caMsg).arg(pdu->caData);
+    qDebug() << "mkdir strPath" << strPath;
+    QDir dir;
+    bool ret = dir.mkdir(strPath);
+    qDebug() << "mkdir ret" << ret;
+    PDU* respdu = mkPDU();
+    memcpy(respdu->caData, &ret, sizeof(bool));
+    respdu->uiType = ENUM_TYPE_MKDIR_RESPOND;
+    return respdu;
 }

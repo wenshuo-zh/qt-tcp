@@ -41,7 +41,8 @@ void Client::loadConfig()
     QStringList strList = strData.split("\r\n");
     m_strIp = strList[0];
     m_usPort = strList[1].toUShort();
-    qDebug() << "ip" << m_strIp << "port" << m_usPort;
+    m_strRootPath = strList[2];
+    qDebug() << "ip" << m_strIp << "port" << m_usPort << "strRootPath" << m_strRootPath;
     file.close();
 }
 
@@ -97,6 +98,10 @@ void Client::handleMsg(PDU *pdu)
     }
     case ENUM_TYPE_CHAT_RESEND:{
         m_prh->chat(pdu);
+        break;
+    }
+    case ENUM_TYPE_MKDIR_RESPOND:{
+        m_prh->mkdir(pdu);
         break;
     }
     default:{

@@ -83,6 +83,10 @@ PDU *MyTcpSocket::handleMsg(PDU *pdu)
         respdu = m_pmh->chat();
         break;
     }
+    case ENUM_TYPE_MKDIR_REQUEST:{
+        respdu = m_pmh->mkdir();
+        break;
+    }
     default:
         break;
     }

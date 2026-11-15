@@ -10,6 +10,12 @@ Server::Server(QWidget *parent)
     MyTcpServer::getInstance().listen(QHostAddress(m_strIp), m_usPort);
 }
 
+Server &Server::getInstance()
+{
+    static Server instance;
+    return instance;
+}
+
 Server::~Server()
 {
 }
@@ -27,6 +33,7 @@ void Server::loadConfig()
     QStringList strList = strData.split("\r\n");
     m_strIp = strList[0];
     m_usPort = strList[1].toUShort();
-    qDebug() << "ip" << m_strIp << "port" << m_usPort;
+    m_strRootPath = strList[2];
+    qDebug() << "ip" << m_strIp << "port" << m_usPort << "strRootPath" << m_strRootPath;
     file.close();
 }
