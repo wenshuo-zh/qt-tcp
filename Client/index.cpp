@@ -44,4 +44,5 @@ void Index::on_friend_PB_clicked()
 void Index::on_file_PB_clicked()
 {
     ui->stackedWidget->setCurrentIndex(1);
+    ui->filePage->flushFile();
 }

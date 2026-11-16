@@ -27,6 +27,7 @@ public:
     void deleteFriend(PDU* pdu);
     void chat(PDU* pdu);
     void mkdir(PDU* pdu);
+    void flushFile(PDU* pdu);
 };
 
 #endif // RESHANDLER_H

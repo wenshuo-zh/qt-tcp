@@ -22,6 +22,7 @@ public:
     PDU* deleteFriend();
     PDU* chat();
     PDU* mkdir();
+    PDU* flushFile();
 };
 
 #endif // MSGHANDLER_H

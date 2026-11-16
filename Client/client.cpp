@@ -104,6 +104,10 @@ void Client::handleMsg(PDU *pdu)
         m_prh->mkdir(pdu);
         break;
     }
+    case ENUM_TYPE_FLUSH_FILE_RESPOND:{
+        m_prh->flushFile(pdu);
+        break;
+    }
     default:{
         break;
     }

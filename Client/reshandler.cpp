@@ -180,7 +180,20 @@ void ResHandler::mkdir(PDU *pdu)
     memcpy(&ret, pdu->caData, sizeof(bool));
     if(ret){
         QMessageBox::information(&Index::getInstance(), "新建文件夹", "新建文件夹成功");
+        Index::getInstance().getFile()->flushFile();
     }else{
         QMessageBox::information(&Index::getInstance(), "新建文件夹", "新建文件夹失败");
     }
+}
+
+void ResHandler::flushFile(PDU *pdu)
+{
+    int iCount = pdu->uiMsgLen / sizeof (FileInfo);
+    QList<FileInfo*> pFileInfoLsit;
+    for(int i = 0; i < iCount; i++){
+        FileInfo* pFileInfo = new FileInfo;
+        memcpy(pFileInfo->caName, pdu->caMsg+i*sizeof(FileInfo), sizeof(FileInfo));
+        pFileInfoLsit.append(pFileInfo);
+    }
+    Index::getInstance().getFile()->updateFileList(pFileInfoLsit);
 }

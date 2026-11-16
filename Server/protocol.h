@@ -29,6 +29,8 @@ enum ENUM_TYPE{
     ENUM_TYPE_CHAT_RESEND,
     ENUM_TYPE_MKDIR_REQUEST,//新建文件夹
     ENUM_TYPE_MKDIR_RESPOND,
+    ENUM_TYPE_FLUSH_FILE_REQUEST,//刷新文件夹
+    ENUM_TYPE_FLUSH_FILE_RESPOND,
     ENUM_TYPE_MAX = 9999,
 };
 
@@ -40,6 +42,13 @@ struct PDU{
     char caData[64];    //参数
     char caMsg[];       //实际消息（柔性数组）
 };
+
+//文件信息结构体
+struct FileInfo{
+    char caName[32];    //文件名
+    int iFileType;      //类型
+};
+
 
 PDU *mkPDU(uint uiMsLen = 0);
 
