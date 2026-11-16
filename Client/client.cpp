@@ -112,8 +112,6 @@ void Client::handleMsg(PDU *pdu)
         break;
     }
     }
-    free(pdu);
-    pdu = NULL;
 }
 
 void Client::sendMsg(PDU *pdu)
@@ -124,8 +122,6 @@ void Client::sendMsg(PDU *pdu)
              << "pdu->uiType" << pdu->uiType
              << "pdu->caData" << pdu->caData
              << "pdu->caData" << pdu->caData+32;
-    free(pdu);
-    pdu = NULL;
 }
 
 PDU *Client::readMsg()
@@ -189,8 +185,16 @@ void Client::on_regist_PB_clicked()
 
 void Client::recvMsg()
 {
-    PDU* pdu = readMsg();
-    handleMsg(pdu);
+    QByteArray data = m_socket.readAll();
+    buffer.append(data);
+    while(buffer.size() >= (int)sizeof (PDU)){
+        PDU* pdu = (PDU*)buffer.data();
+        if(buffer.size() < (int)pdu->uiTotalLen){
+            break;
+        }
+        handleMsg(pdu);
+        buffer.remove(0, pdu->uiTotalLen);
+    }
 }
 
 void Client::on_login_PB_clicked()

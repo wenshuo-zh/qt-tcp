@@ -177,10 +177,13 @@ PDU *MsgHandler::flushFile()
 {
     QDir dir(pdu->caMsg);
     QFileInfoList fileInfoList = dir.entryInfoList();
-    PDU* respdu = mkPDU(fileInfoList.size() * sizeof(FileInfo));
+    PDU* respdu = mkPDU((fileInfoList.size()-2) * sizeof(FileInfo));
     respdu->uiType = ENUM_TYPE_FLUSH_FILE_RESPOND;
-    for(int i = 0; i < fileInfoList.size(); i++){
-        FileInfo* pFileInfo = (FileInfo*)respdu->caMsg + i;//指针加一直接加一个结构体大小的字节
+    for(int i = 0, j = 0; i < fileInfoList.size(); i++){
+        if(fileInfoList[i].fileName() == "." || fileInfoList[i].fileName() == ".."){
+          continue;
+        };
+        FileInfo* pFileInfo = (FileInfo*)respdu->caMsg + j++;//指针加一直接加一个结构体大小的字节
         if(fileInfoList[i].isDir()){
             pFileInfo->iFileType = 0;
         }else{

@@ -22,6 +22,7 @@ public:
     QTcpSocket m_socket;
     QString m_strLoginName;
     ResHandler* m_prh;
+    QByteArray buffer;
     static Client& getInstance();
     void loadConfig();
     PDU* readMsg();

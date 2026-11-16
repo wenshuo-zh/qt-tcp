@@ -94,8 +94,6 @@ PDU *MyTcpSocket::handleMsg(PDU *pdu)
     default:
         break;
     }
-    free(pdu);
-    pdu = NULL;
     return respdu;
 }
 
@@ -114,7 +112,16 @@ void MyTcpSocket::sendMsg(PDU* respdu)
 
 void MyTcpSocket::recvMsg()
 {
-    PDU* pdu = readMsg();
-    PDU* respdu = handleMsg(pdu);
-    sendMsg(respdu);
+    qDebug() << "recvMsg 接受消息长度" << this->bytesAvailable();
+    QByteArray data = this->readAll();
+    buffer.append(data);//追加缓存
+    while(buffer.size() >= int(sizeof(PDU))){//判断是否至少收到一个PDU头部
+        PDU* pdu = (PDU*)buffer.data();
+        if(buffer.size() < int(pdu->uiTotalLen)){//判断PDU是否完整
+            break;
+        }
+        PDU* respdu = handleMsg(pdu);
+        sendMsg(respdu);
+        buffer.remove(0, pdu->uiTotalLen);//删除处理完的一个PDU
+    }
 }

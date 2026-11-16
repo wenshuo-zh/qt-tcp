@@ -15,6 +15,7 @@ public:
     ~MyTcpSocket();
     QString m_strLoginName;
     MsgHandler* m_pmh;
+    QByteArray buffer;
     PDU* readMsg();
     PDU* handleMsg(PDU* pdu);
     void sendMsg(PDU* pdu);
