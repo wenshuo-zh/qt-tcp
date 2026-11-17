@@ -4,6 +4,7 @@
 #include "protocol.h"
 
 #include <QWidget>
+#include <qlistwidget.h>
 
 namespace Ui {
 class File;
@@ -26,6 +27,16 @@ private slots:
     void on_mkdir_PB_clicked();
 
     void on_flush_PB_clicked();
+
+    void on_del_PB_clicked();
+
+    void on_rename_PB_clicked();
+
+    void on_move_PB_clicked();
+
+    void on_listWidget_itemDoubleClicked(QListWidgetItem *item);
+
+    void on_return_PB_clicked();
 
 private:
     Ui::File *ui;

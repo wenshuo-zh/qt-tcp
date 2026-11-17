@@ -28,6 +28,9 @@ public:
     void chat(PDU* pdu);
     void mkdir(PDU* pdu);
     void flushFile(PDU* pdu);
+    void deleteFile(PDU* pdu);
+    void renameFile(PDU* pdu);
+    void moveFile(PDU* pdu);
 };
 
 #endif // RESHANDLER_H

@@ -194,3 +194,64 @@ PDU *MsgHandler::flushFile()
     }
     return respdu;
 }
+
+PDU *MsgHandler::deleteFile()
+{
+    QFileInfo fileInfo(pdu->caMsg);
+    bool ret = false;
+    if(fileInfo.isDir()){
+        QDir dir(pdu->caMsg);
+        ret = dir.removeRecursively();
+    }else{
+        QFile file(pdu->caMsg);
+        ret = file.remove();
+    }
+    PDU* respdu = mkPDU();
+    memcpy(respdu->caData, &ret, sizeof(bool));
+    respdu->uiType = ENUM_TYPE_DELETE_FILE_RESPOND;
+    return respdu;
+}
+
+PDU *MsgHandler::renameFile()
+{
+    char caOldName[33] = {'\0'};
+    char caNewName[33] = {'\0'};
+    memcpy(&caOldName, pdu->caData, 32);
+    memcpy(&caNewName, pdu->caData+32, 32);
+    QString strOldPath = QString("%1/%2").arg(pdu->caMsg).arg(caOldName);
+    QString strNewPath = QString("%1/%2").arg(pdu->caMsg).arg(caNewName);
+    QDir dir;
+    bool ret = dir.rename(strOldPath, strNewPath);
+    PDU* respdu = mkPDU();
+    memcpy(respdu->caData, &ret, sizeof(bool));
+    respdu->uiType = ENUM_TYPE_RENAME_FILE_RESPOND;
+    return respdu;
+}
+
+PDU *MsgHandler::moveFile()
+{
+    uint uiOldPathLen = 0;
+    uint uiNewPathLen = 0;
+    memcpy(&uiOldPathLen, pdu->caData+32, sizeof(uint));
+    memcpy(&uiNewPathLen, pdu->caData+32+sizeof(uint), sizeof(uint));
+
+    bool ret = false;
+    if(uiOldPathLen > 0 && uiNewPathLen > 0 &&
+       uiOldPathLen <= pdu->uiMsgLen &&
+       uiNewPathLen == pdu->uiMsgLen - uiOldPathLen){
+        char caName[33] = {'\0'};
+        memcpy(caName, pdu->caData, 32);
+        QString strOldDir = QString::fromStdString(
+            std::string(pdu->caMsg, uiOldPathLen));
+        QString strNewDir = QString::fromStdString(
+            std::string(pdu->caMsg+uiOldPathLen, uiNewPathLen));
+        QString strOldPath = QString("%1/%2").arg(strOldDir).arg(caName);
+        QString strNewPath = QString("%1/%2").arg(strNewDir).arg(caName);
+        QDir dir;
+        ret = dir.rename(strOldPath, strNewPath);
+    }
+    PDU* respdu = mkPDU();
+    memcpy(respdu->caData, &ret, sizeof(bool));
+    respdu->uiType = ENUM_TYPE_MOVE_FILE_RESPOND;
+    return respdu;
+}

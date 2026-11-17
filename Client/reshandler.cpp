@@ -179,7 +179,6 @@ void ResHandler::mkdir(PDU *pdu)
     bool ret;
     memcpy(&ret, pdu->caData, sizeof(bool));
     if(ret){
-        QMessageBox::information(&Index::getInstance(), "新建文件夹", "新建文件夹成功");
         Index::getInstance().getFile()->flushFile();
     }else{
         QMessageBox::information(&Index::getInstance(), "新建文件夹", "新建文件夹失败");
@@ -196,4 +195,37 @@ void ResHandler::flushFile(PDU *pdu)
         pFileInfoLsit.append(pFileInfo);
     }
     Index::getInstance().getFile()->updateFileList(pFileInfoLsit);
+}
+
+void ResHandler::deleteFile(PDU *pdu)
+{
+    bool ret;
+    memcpy(&ret, pdu->caData, sizeof(bool));
+    if(ret){
+        Index::getInstance().getFile()->flushFile();
+    }else{
+        QMessageBox::information(&Index::getInstance(), "删除文件夹", "删除文件夹失败");
+    }
+}
+
+void ResHandler::renameFile(PDU *pdu)
+{
+    bool ret;
+    memcpy(&ret, pdu->caData, sizeof(bool));
+    if(ret){
+        Index::getInstance().getFile()->flushFile();
+    }else{
+        QMessageBox::information(&Index::getInstance(), "重命名文件", "重命名文件失败");
+    }
+}
+
+void ResHandler::moveFile(PDU *pdu)
+{
+    bool ret;
+    memcpy(&ret, pdu->caData, sizeof(bool));
+    if(ret){
+        Index::getInstance().getFile()->flushFile();
+    }else{
+        QMessageBox::information(&Index::getInstance(), "移动文件", "移动文件失败");
+    }
 }

@@ -23,6 +23,9 @@ public:
     PDU* chat();
     PDU* mkdir();
     PDU* flushFile();
+    PDU* deleteFile();
+    PDU* renameFile();
+    PDU* moveFile();
 };
 
 #endif // MSGHANDLER_H

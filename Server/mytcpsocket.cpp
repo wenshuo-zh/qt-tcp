@@ -91,6 +91,18 @@ PDU *MyTcpSocket::handleMsg(PDU *pdu)
         respdu = m_pmh->flushFile();
         break;
     }
+    case ENUM_TYPE_DELETE_FILE_REQUEST:{
+        respdu = m_pmh->deleteFile();
+        break;
+    }
+    case ENUM_TYPE_RENAME_FILE_REQUEST:{
+        respdu = m_pmh->renameFile();
+        break;
+    }
+    case ENUM_TYPE_MOVE_FILE_REQUEST:{
+        respdu = m_pmh->moveFile();
+        break;
+    }
     default:
         break;
     }

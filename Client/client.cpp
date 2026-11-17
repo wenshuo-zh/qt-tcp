@@ -10,8 +10,8 @@
 
 Client::Client(QWidget *parent)
     : QWidget(parent)
-    , ui(new Ui::Client)
     , m_prh(new ResHandler)
+    , ui(new Ui::Client)
 {
     ui->setupUi(this);
     loadConfig();
@@ -106,6 +106,18 @@ void Client::handleMsg(PDU *pdu)
     }
     case ENUM_TYPE_FLUSH_FILE_RESPOND:{
         m_prh->flushFile(pdu);
+        break;
+    }
+    case ENUM_TYPE_DELETE_FILE_RESPOND:{
+        m_prh->deleteFile(pdu);
+        break;
+    }
+    case ENUM_TYPE_RENAME_FILE_RESPOND:{
+        m_prh->renameFile(pdu);
+        break;
+    }
+    case ENUM_TYPE_MOVE_FILE_RESPOND:{
+        m_prh->moveFile(pdu);
         break;
     }
     default:{
