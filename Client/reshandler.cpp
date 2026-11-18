@@ -229,3 +229,20 @@ void ResHandler::moveFile(PDU *pdu)
         QMessageBox::information(&Index::getInstance(), "移动文件", "移动文件失败");
     }
 }
+
+void ResHandler::uploadFileInit(PDU *pdu)
+{
+    bool ret;
+    memcpy(&ret, pdu->caData, sizeof(bool));
+    if(ret){
+        Index::getInstance().getFile()->uploadFile();
+    }else{
+        QMessageBox::information(&Index::getInstance(), "上传文件", "上传文件失败");
+    }
+}
+
+void ResHandler::uploadFileData()
+{
+    QMessageBox::information(&Index::getInstance(), "上传文件", "上传文件完成");
+    Index::getInstance().getFile()->flushFile();
+}

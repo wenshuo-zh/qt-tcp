@@ -17,11 +17,13 @@ class File : public QWidget
 public:
     QString m_strUserPath;
     QString m_strCurPath;
+    QString m_strUploadFilePath;
     QList<FileInfo*> m_pFileInfoList;
     explicit File(QWidget *parent = nullptr);
     ~File();
     void flushFile();
     void updateFileList(QList<FileInfo*> pFileInfoList);
+    void uploadFile();
 
 private slots:
     void on_mkdir_PB_clicked();
@@ -37,6 +39,8 @@ private slots:
     void on_listWidget_itemDoubleClicked(QListWidgetItem *item);
 
     void on_return_PB_clicked();
+
+    void on_uplpad_PB_clicked();
 
 private:
     Ui::File *ui;

@@ -255,3 +255,31 @@ PDU *MsgHandler::moveFile()
     respdu->uiType = ENUM_TYPE_MOVE_FILE_RESPOND;
     return respdu;
 }
+
+PDU *MsgHandler::uploadFileInit()
+{
+    char caFileName[32] = {'\0'};
+    memcpy(&caFileName, pdu->caData, 32);
+    m_iUploadFileReceivedSize = 0;
+    memcpy(&m_iUploadFileSize, pdu->caData+32, sizeof (qint64));
+    QString strPath = QString("%1/%2").arg(pdu->caMsg).arg(caFileName);
+    m_fUploadFile.setFileName(strPath);
+    bool ret = m_fUploadFile.open(QIODevice::WriteOnly);
+    PDU* respdu = mkPDU();
+    memcpy(respdu->caData, &ret, sizeof(bool));
+    respdu->uiType = ENUM_TYPE_UPLOAD_FILE_INIT_RESPOND;
+    return respdu;
+}
+
+PDU *MsgHandler::uploadFileData()
+{
+    m_fUploadFile.write(pdu->caMsg, pdu->uiMsgLen);
+    m_iUploadFileReceivedSize += pdu->uiMsgLen;
+    if(m_iUploadFileReceivedSize < m_iUploadFileSize){
+        return NULL;
+    }
+    m_fUploadFile.close();
+    PDU* respdu = mkPDU();
+    respdu->uiType = ENUM_TYPE_UPLOAD_FILE_DATA_RESPOND;
+    return respdu;
+}

@@ -120,6 +120,13 @@ void Client::handleMsg(PDU *pdu)
         m_prh->moveFile(pdu);
         break;
     }
+    case ENUM_TYPE_UPLOAD_FILE_INIT_RESPOND:{
+        m_prh->uploadFileInit(pdu);
+        break;
+    }
+    case ENUM_TYPE_UPLOAD_FILE_DATA_RESPOND:{
+        m_prh->uploadFileData();
+    }
     default:{
         break;
     }

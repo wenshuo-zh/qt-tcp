@@ -2,6 +2,7 @@
 #include "file.h"
 #include "ui_file.h"
 
+#include <QFileDialog>
 #include <qinputdialog.h>
 #include <qmessagebox.h>
 
@@ -45,6 +46,31 @@ void File::updateFileList(QList<FileInfo *> pFileInfoList)
         pItem->setText(pFileInfo->caName);
         ui->listWidget->addItem(pItem);
     }
+}
+
+void File::uploadFile()
+{
+    QFile file(m_strUploadFilePath);
+    if(!file.open(QFileDevice::ReadOnly)){
+        QMessageBox::information(this, "上传文件", "打开文件失败");
+        return;
+    }
+    while(true){
+        PDU* datapdu = mkPDU(4096);//一次传4kb
+        datapdu->uiType = ENUM_TYPE_UPLOAD_FILE_DATA_REQUEST;
+        qint64 ret = file.read(datapdu->caMsg, 4096);
+        if(ret == 0){
+            break;
+        }
+        if(ret < 0){
+            QMessageBox::information(this, "上传文件", "读取文件失败");
+            break;
+        }
+        datapdu->uiMsgLen = ret;
+        datapdu->uiTotalLen = ret + sizeof (PDU);
+        Client::getInstance().sendMsg(datapdu);
+    }
+    file.close();
 }
 
 void File::on_mkdir_PB_clicked()
@@ -159,4 +185,23 @@ void File::on_return_PB_clicked()
     int index = m_strCurPath.lastIndexOf('/');
     m_strCurPath.remove(index, m_strCurPath.size()-index);
     flushFile();
+}
+
+void File::on_uplpad_PB_clicked()
+{
+    m_strUploadFilePath.clear();
+    m_strUploadFilePath = QFileDialog::getOpenFileName();
+    if(m_strUploadFilePath.isEmpty()){
+        return;
+    }
+    QFile file(m_strUploadFilePath);
+    qint64 iFileSize = file.size();
+    int index = m_strUploadFilePath.lastIndexOf('/');
+    QString strFileName = m_strUploadFilePath.right(m_strUploadFilePath.size()-index-1);
+    PDU* pdu = mkPDU(m_strCurPath.toStdString().size()+1);
+    pdu->uiType = ENUM_TYPE_UPLOAD_FILE_INIT_REQUEST;
+    memcpy(pdu->caData, strFileName.toStdString().c_str(), 32);
+    memcpy(pdu->caData+32, &iFileSize, sizeof (qint64));
+    memcpy(pdu->caMsg, m_strCurPath.toStdString().c_str(), m_strCurPath.toStdString().size());
+    Client::getInstance().sendMsg(pdu);
 }

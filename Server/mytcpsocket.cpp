@@ -103,6 +103,13 @@ PDU *MyTcpSocket::handleMsg(PDU *pdu)
         respdu = m_pmh->moveFile();
         break;
     }
+    case ENUM_TYPE_UPLOAD_FILE_INIT_REQUEST:{
+        respdu = m_pmh->uploadFileInit();
+        break;
+    }
+    case ENUM_TYPE_UPLOAD_FILE_DATA_REQUEST:{
+        respdu = m_pmh->uploadFileData();
+    }
     default:
         break;
     }
