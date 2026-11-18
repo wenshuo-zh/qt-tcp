@@ -125,7 +125,8 @@ void Client::handleMsg(PDU *pdu)
         break;
     }
     case ENUM_TYPE_UPLOAD_FILE_DATA_RESPOND:{
-        m_prh->uploadFileData();
+        m_prh->uploadFileData(pdu);
+        break;
     }
     default:{
         break;

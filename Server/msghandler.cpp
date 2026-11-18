@@ -265,21 +265,45 @@ PDU *MsgHandler::uploadFileInit()
     QString strPath = QString("%1/%2").arg(pdu->caMsg).arg(caFileName);
     m_fUploadFile.setFileName(strPath);
     bool ret = m_fUploadFile.open(QIODevice::WriteOnly);
+    bool isFinished = false;
+    if(ret && m_iUploadFileSize == 0){
+        m_fUploadFile.close();
+        isFinished = true;
+    }
     PDU* respdu = mkPDU();
     memcpy(respdu->caData, &ret, sizeof(bool));
+    memcpy(respdu->caData + sizeof(bool), &isFinished, sizeof(bool));
     respdu->uiType = ENUM_TYPE_UPLOAD_FILE_INIT_RESPOND;
     return respdu;
 }
 
 PDU *MsgHandler::uploadFileData()
 {
-    m_fUploadFile.write(pdu->caMsg, pdu->uiMsgLen);
-    m_iUploadFileReceivedSize += pdu->uiMsgLen;
+    PDU* respdu = mkPDU();
+    respdu->uiType = ENUM_TYPE_UPLOAD_FILE_DATA_RESPOND;
+    bool success = false;
+    if(m_iUploadFileReceivedSize+pdu->uiMsgLen > m_iUploadFileSize){//超量判断
+        m_fUploadFile.close();
+        m_fUploadFile.remove();
+        memcpy(respdu->caData, &success, sizeof (bool));
+        return respdu;
+    }
+    qint64 ret = m_fUploadFile.write(pdu->caMsg, pdu->uiMsgLen);//获取实际写入的字节数
+
+    if(ret != pdu->uiMsgLen){//响应失败pdu
+        m_fUploadFile.close();
+        m_fUploadFile.remove();
+        memcpy(respdu->caData, &success, sizeof (bool));
+        return respdu;
+    }
+
+    m_iUploadFileReceivedSize += ret;
     if(m_iUploadFileReceivedSize < m_iUploadFileSize){
+        free(respdu);
         return NULL;
     }
     m_fUploadFile.close();
-    PDU* respdu = mkPDU();
-    respdu->uiType = ENUM_TYPE_UPLOAD_FILE_DATA_RESPOND;
+    success = true;
+    memcpy(respdu->caData, &success, sizeof (bool));
     return respdu;
 }

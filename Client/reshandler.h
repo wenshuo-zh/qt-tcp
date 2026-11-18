@@ -32,7 +32,7 @@ public:
     void renameFile(PDU* pdu);
     void moveFile(PDU* pdu);
     void uploadFileInit(PDU* pdu);
-    void uploadFileData();
+    void uploadFileData(PDU *pdu);
 };
 
 #endif // RESHANDLER_H
