@@ -109,6 +109,15 @@ PDU *MyTcpSocket::handleMsg(PDU *pdu)
     }
     case ENUM_TYPE_UPLOAD_FILE_DATA_REQUEST:{
         respdu = m_pmh->uploadFileData();
+        break;
+    }
+    case ENUM_TYPE_DOWNLOAD_FILE_INIT_REQUEST:{
+        respdu = m_pmh->downloadFileInit();
+        break;
+    }
+    case ENUM_TYPE_DOWNLOAD_FILE_DATA_REQUEST:{
+        respdu = m_pmh->downloadFileData();
+        break;
     }
     default:
         break;

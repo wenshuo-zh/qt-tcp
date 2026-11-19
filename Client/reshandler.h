@@ -2,7 +2,8 @@
 #define RESHANDLER_H
 
 #include "protocol.h"
-
+#include <QtGlobal>
+#include <qfile.h>
 
 
 class ResHandler
@@ -33,6 +34,14 @@ public:
     void moveFile(PDU* pdu);
     void uploadFileInit(PDU* pdu);
     void uploadFileData(PDU *pdu);
+    void downloadFileInit(PDU* pdu);
+    void downloadFileData(PDU *pdu);
+
+private:
+    void cancelDownloadFile();
+    QFile m_fDownloadFile;
+    qint64 m_iDownloadFileSize;
+    qint64 m_iDownloadFileReceivedSize;
 };
 
 #endif // RESHANDLER_H

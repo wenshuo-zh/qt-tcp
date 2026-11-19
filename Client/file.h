@@ -42,6 +42,8 @@ private slots:
 
     void on_uplpad_PB_clicked();
 
+    void on_download_PB_clicked();
+
 private:
     Ui::File *ui;
 };

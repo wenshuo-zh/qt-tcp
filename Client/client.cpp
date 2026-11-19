@@ -128,6 +128,15 @@ void Client::handleMsg(PDU *pdu)
         m_prh->uploadFileData(pdu);
         break;
     }
+    case ENUM_TYPE_DOWNLOAD_FILE_INIT_RESPOND:{
+        m_prh->downloadFileInit(pdu);
+        break;
+    }
+
+    case ENUM_TYPE_DOWNLOAD_FILE_DATA_RESPOND:{
+        m_prh->downloadFileData(pdu);
+        break;
+    }
     default:{
         break;
     }

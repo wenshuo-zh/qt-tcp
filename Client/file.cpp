@@ -205,3 +205,17 @@ void File::on_uplpad_PB_clicked()
     memcpy(pdu->caMsg, m_strCurPath.toStdString().c_str(), m_strCurPath.toStdString().size());
     Client::getInstance().sendMsg(pdu);
 }
+
+void File::on_download_PB_clicked()
+{
+    QListWidgetItem* pItem = ui->listWidget->currentItem();
+    if(!pItem){
+        return;
+    }
+    QString strFileName = pItem->text();
+    QString strFilePath = QString("%1/%2").arg(m_strCurPath).arg(strFileName);
+    PDU* pdu = mkPDU(strFilePath.toStdString().size()+1);
+    pdu->uiType = ENUM_TYPE_DOWNLOAD_FILE_INIT_REQUEST;
+    memcpy(pdu->caMsg, strFilePath.toStdString().c_str(), strFilePath.toStdString().size());
+    Client::getInstance().sendMsg(pdu);
+}

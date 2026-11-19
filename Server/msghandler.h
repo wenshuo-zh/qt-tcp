@@ -15,6 +15,9 @@ public:
     qint64 m_iUploadFileSize;           //总大小
     qint64 m_iUploadFileReceivedSize;   //已接收大小
     QFile m_fUploadFile;
+    qint64 m_iDownloadFileSize;
+    qint64 m_iDownloadFileSentSize;
+    QFile m_fDownloadFile;
     PDU* regist();
     PDU* findUser();
     PDU* onlineUser();
@@ -32,6 +35,8 @@ public:
     PDU* moveFile();
     PDU* uploadFileInit();
     PDU* uploadFileData();
+    PDU* downloadFileInit();
+    PDU* downloadFileData();
 };
 
 #endif // MSGHANDLER_H

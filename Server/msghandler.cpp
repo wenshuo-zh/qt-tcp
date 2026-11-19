@@ -5,6 +5,8 @@
 #include "server.h"
 #include <QDebug>
 #include <QDir>
+#include <QFileInfo>
+#include <QByteArray>
 #include<string>
 MsgHandler::MsgHandler()
 {
@@ -306,4 +308,59 @@ PDU *MsgHandler::uploadFileData()
     success = true;
     memcpy(respdu->caData, &success, sizeof (bool));
     return respdu;
+}
+
+PDU *MsgHandler::downloadFileInit()
+{
+    m_fDownloadFile.setFileName(pdu->caMsg);
+    int ret = -1;//文件打开失败
+    bool isFinished = false;
+    m_iDownloadFileSize = 0;
+    m_iDownloadFileSentSize = 0;
+    PDU* respdu = mkPDU();
+    if(m_fDownloadFile.exists()){
+        m_iDownloadFileSize = m_fDownloadFile.size();
+        ret = m_fDownloadFile.open(QIODevice::ReadOnly);//成功1，失败0
+        if(ret && m_iDownloadFileSize == 0){//空文件处理
+            m_fDownloadFile.close();
+            isFinished = true;
+        }
+    }
+    memcpy(respdu->caData, &ret, sizeof(int));
+    memcpy(respdu->caData + sizeof(int), &isFinished, sizeof(bool));
+    memcpy(respdu->caData+sizeof(int)+sizeof(bool), &m_iDownloadFileSize, sizeof (qint64));
+    QByteArray fileName = QFileInfo(pdu->caMsg).fileName().toUtf8();
+    uint uiFileNameOffset = sizeof(int) + sizeof(bool) + sizeof(qint64);
+    uint uiFileNameMaxLen = sizeof(respdu->caData) - uiFileNameOffset - 1;
+    uint uiFileNameLen = qMin(uint(fileName.size()), uiFileNameMaxLen);
+    memcpy(respdu->caData + uiFileNameOffset, fileName.constData(), uiFileNameLen);
+    respdu->uiType = ENUM_TYPE_DOWNLOAD_FILE_INIT_RESPOND;
+    return respdu;
+}
+
+PDU *MsgHandler::downloadFileData()
+{
+    // caData[0] 为 1 时关闭当前下载文件；0 表示读取下一块。
+    if(pdu->caData[0] != 0){
+        m_fDownloadFile.close();
+        m_iDownloadFileSize = 0;
+        m_iDownloadFileSentSize = 0;
+        return nullptr;
+    }
+    if(!m_fDownloadFile.isOpen()){
+        return nullptr;
+    }
+    char caBuf[4096] = {'\0'};
+    qint64 ret = m_fDownloadFile.read(caBuf, sizeof(caBuf));
+    if(ret <= 0){
+        return nullptr;
+    }
+    m_iDownloadFileSentSize += ret;
+    PDU *pdu = mkPDU(ret);
+    pdu->uiType = ENUM_TYPE_DOWNLOAD_FILE_DATA_RESPOND;
+    memcpy(pdu->caMsg, caBuf, ret);
+    if(m_iDownloadFileSentSize == m_iDownloadFileSize){
+         m_fDownloadFile.close();
+    }
+    return pdu;
 }

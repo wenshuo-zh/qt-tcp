@@ -3,6 +3,9 @@
 #include "reshandler.h"
 #include "string"
 #include <QDebug>
+#include <QDir>
+#include <QFileInfo>
+#include <qfiledialog.h>
 #include <qmessagebox.h>
 ResHandler::ResHandler()
 {
@@ -256,4 +259,89 @@ void ResHandler::uploadFileData(PDU *pdu)
     }else{
         QMessageBox::information(&Index::getInstance(), "上传文件","上传文件失败");
     }
+}
+
+void ResHandler::cancelDownloadFile()
+{
+    PDU* pdu = mkPDU();
+    pdu->uiType = ENUM_TYPE_DOWNLOAD_FILE_DATA_REQUEST;
+    pdu->caData[0] = 1; // 0 请求下一块，1 取消下载
+    Client::getInstance().sendMsg(pdu);
+}
+
+void ResHandler::downloadFileInit(PDU *pdu)
+{
+    int ret;
+    bool isFinished;
+    memcpy(&ret, pdu->caData, sizeof(int));
+    memcpy(&isFinished, pdu->caData + sizeof(int), sizeof(bool));
+    memcpy(&m_iDownloadFileSize, pdu->caData+sizeof (int)+sizeof (bool), sizeof (qint64));
+    const uint uiFileNameOffset = sizeof(int) + sizeof(bool) + sizeof(qint64);
+    QString strFileName = QString::fromUtf8(pdu->caData + uiFileNameOffset);
+    if(ret == -1){
+        QMessageBox::information(&Index::getInstance(), "下载文件失败", "初始化失败或文件不存在");
+    }else if(ret == 0){
+        QMessageBox::information(&Index::getInstance(), "下载文件失败", "打开文件失败");
+    }else{
+        QString strInitPath = QDir::home().filePath(strFileName);
+        QString strSavePath = QFileDialog::getSaveFileName(
+            &Index::getInstance(), "选择下载位置", strInitPath, "所有文件 (*)");
+        if(strSavePath.isEmpty()){
+            cancelDownloadFile();
+            return;
+        }
+
+        QString strSourceSuffix = QFileInfo(strFileName).completeSuffix();
+        QString strSaveSuffix = QFileInfo(strSavePath).completeSuffix();
+        if(strSourceSuffix.compare(strSaveSuffix, Qt::CaseInsensitive) != 0){
+            QMessageBox::information(&Index::getInstance(), "下载文件失败",
+                                     "保存文件的扩展名需要与源文件一致");
+            cancelDownloadFile();
+            return;
+        }
+
+        m_fDownloadFile.setFileName(strSavePath);
+        bool res = m_fDownloadFile.open(QIODevice::WriteOnly);
+        if(!res){
+            QMessageBox::information(&Index::getInstance(), "下载文件失败", "本地文件创建失败");
+            cancelDownloadFile();
+            return;
+        }
+        m_iDownloadFileReceivedSize = 0;
+        if(isFinished){
+            m_fDownloadFile.close();
+            QMessageBox::information(&Index::getInstance(), "下载文件", "下载文件完成");
+            return;
+        }
+        PDU* requestPdu = mkPDU();
+        requestPdu->uiType = ENUM_TYPE_DOWNLOAD_FILE_DATA_REQUEST;
+        Client::getInstance().sendMsg(requestPdu);
+    }
+}
+
+void ResHandler::downloadFileData(PDU *pdu)
+{
+    if(m_iDownloadFileReceivedSize+pdu->uiMsgLen > m_iDownloadFileSize){//超量判断
+        m_fDownloadFile.close();
+        m_fDownloadFile.remove();
+        QMessageBox::information(&Index::getInstance(), "下载文件失败", "文件读取错误");
+        return;
+    }
+    qint64 ret = m_fDownloadFile.write(pdu->caMsg, pdu->uiMsgLen);//获取实际写入的字节数
+    if(ret != pdu->uiMsgLen){
+        m_fDownloadFile.close();
+        m_fDownloadFile.remove();
+        QMessageBox::information(&Index::getInstance(), "下载文件失败", "文件读取不完整");
+        return;
+    }
+
+    m_iDownloadFileReceivedSize += ret;
+    if(m_iDownloadFileReceivedSize < m_iDownloadFileSize){
+        PDU* requestPdu = mkPDU();
+        requestPdu->uiType = ENUM_TYPE_DOWNLOAD_FILE_DATA_REQUEST;
+        Client::getInstance().sendMsg(requestPdu);
+        return;
+    }
+    m_fDownloadFile.close();
+    QMessageBox::information(&Index::getInstance(), "下载文件", "下载文件成功");
 }
