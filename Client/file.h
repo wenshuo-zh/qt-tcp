@@ -25,6 +25,10 @@ public:
     void updateFileList(QList<FileInfo*> pFileInfoList);
     void uploadFile();
 
+public slots:
+    void uploadErrorBox(const QString& msg);
+
+
 private slots:
     void on_mkdir_PB_clicked();
 

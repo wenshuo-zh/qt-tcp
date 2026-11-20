@@ -268,7 +268,7 @@ PDU *MsgHandler::uploadFileInit()
     m_fUploadFile.setFileName(strPath);
     bool ret = m_fUploadFile.open(QIODevice::WriteOnly);
     bool isFinished = false;
-    if(ret && m_iUploadFileSize == 0){
+    if(ret && m_iUploadFileSize == 0){//空文件处理
         m_fUploadFile.close();
         isFinished = true;
     }
@@ -281,12 +281,13 @@ PDU *MsgHandler::uploadFileInit()
 
 PDU *MsgHandler::uploadFileData()
 {
-    PDU* respdu = mkPDU();
-    respdu->uiType = ENUM_TYPE_UPLOAD_FILE_DATA_RESPOND;
+
     bool success = false;
     if(m_iUploadFileReceivedSize+pdu->uiMsgLen > m_iUploadFileSize){//超量判断
         m_fUploadFile.close();
         m_fUploadFile.remove();
+        PDU* respdu = mkPDU();
+        respdu->uiType = ENUM_TYPE_UPLOAD_FILE_DATA_RESPOND;
         memcpy(respdu->caData, &success, sizeof (bool));
         return respdu;
     }
@@ -295,16 +296,19 @@ PDU *MsgHandler::uploadFileData()
     if(ret != pdu->uiMsgLen){//响应失败pdu
         m_fUploadFile.close();
         m_fUploadFile.remove();
+        PDU* respdu = mkPDU();
+        respdu->uiType = ENUM_TYPE_UPLOAD_FILE_DATA_RESPOND;
         memcpy(respdu->caData, &success, sizeof (bool));
         return respdu;
     }
 
     m_iUploadFileReceivedSize += ret;
     if(m_iUploadFileReceivedSize < m_iUploadFileSize){
-        free(respdu);
         return NULL;
     }
     m_fUploadFile.close();
+    PDU* respdu = mkPDU();
+    respdu->uiType = ENUM_TYPE_UPLOAD_FILE_DATA_RESPOND;
     success = true;
     memcpy(respdu->caData, &success, sizeof (bool));
     return respdu;

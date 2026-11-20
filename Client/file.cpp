@@ -1,6 +1,7 @@
 #include "client.h"
 #include "file.h"
 #include "ui_file.h"
+#include "uploader.h"
 
 #include <QFileDialog>
 #include <qinputdialog.h>
@@ -50,27 +51,16 @@ void File::updateFileList(QList<FileInfo *> pFileInfoList)
 
 void File::uploadFile()
 {
-    QFile file(m_strUploadFilePath);
-    if(!file.open(QFileDevice::ReadOnly)){
-        QMessageBox::information(this, "上传文件", "打开文件失败");
-        return;
-    }
-    while(true){
-        PDU* datapdu = mkPDU(4096);//一次传4kb
-        datapdu->uiType = ENUM_TYPE_UPLOAD_FILE_DATA_REQUEST;
-        qint64 ret = file.read(datapdu->caMsg, 4096);
-        if(ret == 0){
-            break;
-        }
-        if(ret < 0){
-            QMessageBox::information(this, "上传文件", "读取文件失败");
-            break;
-        }
-        datapdu->uiMsgLen = ret;
-        datapdu->uiTotalLen = ret + sizeof (PDU);
-        Client::getInstance().sendMsg(datapdu);
-    }
-    file.close();
+    Uploader* uploader = new Uploader(m_strUploadFilePath);
+    connect(uploader, &Uploader::errorMsg, this, &File::uploadErrorBox, Qt::QueuedConnection);
+    connect(uploader, &Uploader::uploadPDU, &Client::getInstance(), &Client::sendMsg, Qt::QueuedConnection);
+    uploader->start();
+
+}
+
+void File::uploadErrorBox(const QString &msg)
+{
+    QMessageBox::information(this, "提示", msg);
 }
 
 void File::on_mkdir_PB_clicked()

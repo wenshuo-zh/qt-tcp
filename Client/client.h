@@ -27,19 +27,20 @@ public:
     void loadConfig();
     PDU* readMsg();
     void handleMsg(PDU* pdu);
-    void sendMsg(PDU* pdu);
+
 
     ~Client();
 
 public slots:
     void showConnect();
-
+    void recvMsg();
+    void sendMsg(PDU* pdu);
 
 private slots:
     //void on_send_PB_clicked();
 
     void on_regist_PB_clicked();
-    void recvMsg();
+
     void on_login_PB_clicked();
 
 private:
