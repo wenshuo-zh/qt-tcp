@@ -1,124 +1,159 @@
-# Qt TCP 聊天客户端/服务端
+# 基于 Qt 的 TCP 文件管理与即时通信系统
 
-一个基于 Qt 和 TCP 的客户端/服务端聊天项目。客户端使用 Qt Widgets 构建图形界面，通过 TCP 与服务端通信，并结合 MySQL 管理用户信息、在线状态和好友关系。
+**Qt-based TCP File Management and Instant Messaging System**
 
-目前已实现用户注册登录、在线用户查询、基础好友管理和文本聊天；文件页已接入目录浏览、刷新、新建文件夹、删除、重命名、移动、上传和下载操作。聊天消息支持发送方回显，并在客户端内按好友保存会话记录；文件分享仍在完善。
+一个基于 Qt Widgets、TCP 和 MySQL 的桌面聊天项目。客户端提供账号、好友、聊天和远程文件管理界面；服务端负责处理请求、转发消息，并通过数据库维护用户与好友关系。
+
+目前已接入用户注册登录、好友管理、基础文本聊天，以及远程文件浏览和传输。文件分享、离线消息和服务端聊天记录持久化不在当前实现范围内。
 
 ## 技术栈
-
-项目主要使用了哪些技术？
 
 | 领域 | 技术 | 用途 |
 | --- | --- | --- |
 | 语言 | C++11 | 编写客户端与服务端 |
-| 界面 | Qt Widgets、Qt Designer、QSS | 构建客户端图形界面并统一界面样式 |
-| 网络 | Qt Network、`QTcpSocket`、`QTcpServer` | 通过 TCP 建立连接并收发数据 |
-| 通信协议 | 自定义 PDU | 标记消息类型、长度和消息数据 |
+| 界面 | Qt Widgets、Qt Designer、QSS | 构建客户端界面并统一样式 |
+| 网络 | Qt Network、`QTcpSocket`、`QTcpServer` | 建立 TCP 连接并收发数据 |
+| 通信协议 | 自定义 PDU | 区分请求类型、数据长度和消息内容 |
 | 数据库 | MySQL、Qt SQL `QMYSQL` 驱动 | 保存用户信息、在线状态和好友关系 |
 | 构建 | qmake、MinGW | 管理和构建 Qt 工程 |
 
 ## 功能介绍
 
-账号、好友和基础文本聊天流程已经接入；客户端与服务端已加入按 PDU 长度缓存和拆包的基础收包处理，文件传输仍在完善。
+### 账号与好友
 
-### 已实现
+- 用户注册和登录；同一账号在线时拒绝重复登录，客户端断开后更新在线状态。
+- 查询用户和在线用户列表。
+- 发起好友申请，并处理同意或拒绝；阻止添加自己，支持刷新在线好友和删除好友。
 
-- 用户注册与登录；同一账号在线时，服务端会拒绝重复登录。
-- 客户端断开连接后，服务端将该账号的在线状态更新为离线。
-- 查询用户在线状态，以及获取在线用户列表。
-- 发起好友申请；服务端转发申请，目标用户可以同意或拒绝。
-- 阻止用户添加自己；可以刷新在线好友列表或删除好友关系。刷新结果只包含在线好友，离线好友不会显示在列表中。
-- 基础文本聊天：服务端转发消息并回送发送方，聊天窗口显示收发内容；客户端按好友分别保存会话记录。
-- 文件页支持目录浏览、刷新、新建文件夹、删除、重命名、移动、上传和下载；客户端在后台线程分块读取上传文件，上传支持空文件，下载按块传输并保留源文件扩展名。
-- 登录页、好友页、文件页和在线用户窗口采用统一的暗紫色 QSS 样式。
+### 聊天
 
-### 正在完善
+- 服务端将文本消息转发给目标用户，并向发送方回送消息用于即时回显。
+- 客户端按好友分别保存和恢复当前运行期间的会话记录，收发消息使用不同文字颜色显示。
 
-- TCP 收包已加入按 PDU 长度缓存和循环拆包的基础处理；异常长度校验和更多边界情况仍待完善。
-- 聊天记录目前只保存在客户端内存中，离线消息和服务端历史存储尚未实现。文件分享尚未接入。
-- 好友申请、同意/拒绝、刷新和删除等处理已实现，完整的多客户端流程联调仍待完成。
+### 远程文件
 
-## 项目架构
-
-客户端负责显示界面、发送请求并处理服务端响应。服务端接收每个客户端的 TCP 连接，根据 PDU 消息类型分发请求；需要读写用户或好友数据时，再通过 Qt SQL 访问 MySQL。
-
-```mermaid
-flowchart LR
-    A[客户端 A<br/>Qt Widgets / QTcpSocket / ResHandler]
-    B[客户端 B<br/>Qt Widgets / QTcpSocket / ResHandler]
-    S[MyTcpServer<br/>QTcpServer 连接管理]
-    SA[MyTcpSocket A]
-    SB[MyTcpSocket B]
-    M[MsgHandler<br/>业务请求处理]
-    O[OperateDB<br/>数据库操作]
-    Q[Qt SQL / QMYSQL]
-    DB[(MySQL<br/>user_info / friend)]
-
-    A <-->|TCP / PDU| SA
-    B <-->|TCP / PDU| SB
-    S -->|管理连接| SA
-    S -->|管理连接| SB
-    SA <-->|请求与响应| M
-    M -->|数据库操作| O
-    O --> Q
-    Q <--> DB
-    M -.->|好友申请转发| S
-    S -.->|发送至目标连接| SB
-```
-
-PDU 定义在客户端和服务端各自的 `protocol.h` 中。固定部分由 `uiTotalLen`、`uiMsgLen`、`uiType` 三个 `uint` 字段和 `caData[64]` 组成；可变消息区是 `caMsg[]`，其长度由 `uiMsgLen` 表示。客户端通过 `ResHandler` 处理响应，服务端由 `MsgHandler` 处理业务请求，再调用 `OperateDB` 访问数据库。当前接收逻辑尚未完整处理 TCP 半包和粘包。
+- 浏览目录，刷新列表，新建文件夹、删除、重命名和移动文件。
+- 分块上传和下载文件，支持空文件；下载时保留源文件名及扩展名。
 
 ## 项目截图
 
-主要功能完善后，将补充客户端登录、好友管理和聊天界面的实际运行截图。
+以下截图展示客户端当前的主要界面。
 
-## 项目目录结构
+### 登录界面
+
+![客户端登录界面](docs/images/login.png)
+
+### 好友管理
+
+![好友管理界面](docs/images/friends.png)
+
+### 聊天窗口
+
+![聊天窗口](docs/images/chat.png)
+
+### 文件管理
+
+![远程文件管理界面](docs/images/files.png)
+
+## 项目架构
+
+客户端负责界面、请求发送和响应处理。服务端为每个连接创建 `MyTcpSocket`，由 `MsgHandler` 分发业务请求；需要用户或好友数据时通过 `OperateDB` 访问 MySQL。好友申请和聊天消息由服务端根据目标用户名转发到对应连接。
+
+```mermaid
+flowchart LR
+    CA[客户端 A<br/>Qt Widgets / QTcpSocket / ResHandler]
+    CB[客户端 B<br/>Qt Widgets / QTcpSocket / ResHandler]
+    SA[MyTcpSocket A]
+    SB[MyTcpSocket B]
+    MS[MyTcpServer<br/>监听与连接管理]
+    MH[MsgHandler<br/>业务请求处理]
+    DBOP[OperateDB<br/>数据库操作]
+    SQL[Qt SQL / QMYSQL]
+    MYSQL[(MySQL<br/>user_info / friend)]
+
+    CA <-->|TCP / PDU| SA
+    CB <-->|TCP / PDU| SB
+    MS -->|管理连接| SA
+    MS -->|管理连接| SB
+    SA -->|请求| MH
+    MH -->|响应| SA
+    MH --> DBOP
+    DBOP --> SQL
+    SQL --> MYSQL
+    MH -.->|按用户名转发好友申请和聊天消息| MS
+```
+
+## 核心实现
+
+### 自定义 PDU
+
+客户端和服务端分别在 `protocol.h` 中定义相同的 PDU。固定部分保存长度、类型和参数，可变消息区承载用户名列表、聊天内容或文件数据。
+
+| 字段 | 作用 |
+| --- | --- |
+| `uiTotalLen` | 当前 PDU 的总长度 |
+| `uiMsgLen` | 可变消息区 `caMsg` 的长度 |
+| `uiType` | 标识注册、登录、聊天、文件操作等请求或响应类型 |
+| `caData[64]` | 固定参数区，例如用户名、操作结果或文件元数据 |
+| `caMsg[]` | 可变数据区，例如聊天文本、路径或文件分块 |
+
+TCP 是字节流，单次读取不一定对应一条完整消息。客户端和服务端都将收到的数据追加到缓冲区，再依据 `uiTotalLen` 循环取出完整 PDU，因此具备基础的半包等待和粘包拆分机制。当前对非法长度等异常输入的校验仍需加强。
+
+### 消息转发流程
+
+```mermaid
+sequenceDiagram
+    participant A as 客户端 A
+    participant SA as MyTcpSocket A
+    participant MH as MsgHandler
+    participant MS as MyTcpServer
+    participant SB as MyTcpSocket B
+    participant B as 客户端 B
+
+    A->>SA: 发送聊天 PDU
+    SA->>MH: 按 uiType 分发请求
+    MH->>MS: 按目标用户名查找连接
+    MS->>SB: 转发给客户端 B
+    SB->>B: 返回聊天 PDU
+    MH->>MS: 回送一份给发送方
+    MS->>SA: 发送方回显
+```
+
+### 分块文件传输与线程
+
+- 上传先发送目标目录、文件名和文件大小。客户端 `Uploader` 在线程中每次读取 4096 字节，再通过 queued signal 将 PDU 交给客户端的 `sendMsg()`；实际 `QTcpSocket` 写入仍由客户端对象完成。服务端按块写入目标文件，并在传输结束后返回结果。
+- 下载先请求文件信息并选择本地保存位置，随后客户端逐块请求数据，服务端每次最多读取 4096 字节，客户端写入本地文件直到完成。
+- 上传和下载都按顺序传输数据块；上传读取线程用于减少文件读取对界面的影响，不代表多块并行传输。
+
+## 项目目录
 
 ```text
 .
-├── Client/
+├── Client/                 # Qt Widgets 客户端
 │   ├── Client.pro          # 客户端 qmake 工程
-│   ├── main.cpp            # 客户端程序入口
-│   ├── client.*            # 登录界面、TCP 连接和消息分发
-│   ├── protocol.*          # PDU 结构与消息类型
-│   ├── reshandler.*        # 服务端响应处理
-│   ├── index.*             # 登录后的主界面
-│   ├── friend.*            # 好友页及好友操作
-│   ├── onlineuser.*        # 在线用户窗口
-│   ├── chat.*              # 聊天窗口、好友会话记录与基础消息收发
-│   ├── file.*              # 文件页、目录浏览与文件操作请求
-│   ├── uploader.*          # 上传文件的后台分块读取
-│   ├── dir.qrc             # 文件和文件夹图标资源
-│   ├── dir.png             # 文件夹图标
-│   ├── file.png            # 文件图标
-│   ├── client.qss          # 客户端主题样式
-│   ├── config.qrc          # 客户端内嵌资源
-│   └── connect.config      # 客户端目标地址、端口与文件根目录
-├── Server/
-│   ├── Server.pro          # 服务端 qmake 工程
-│   ├── main.cpp            # 服务端程序入口
-│   ├── server.*            # 服务端启动与监听配置
-│   ├── mytcpserver.*       # 接入连接与管理客户端 socket
-│   ├── mytcpsocket.*       # 单个客户端连接的收发处理
-│   ├── clienttask.*        # 客户端任务处理类框架
-│   ├── msghandler.*        # 注册、登录、查询和好友请求处理
-│   ├── operatedb.*         # MySQL 连接与数据操作
-│   ├── protocol.*          # PDU 结构与消息类型
-│   ├── database.ini.example # 本地数据库配置示例
-│   ├── config.qrc          # 服务端内嵌连接配置
-│   └── connect.config      # 服务端监听地址、端口与文件根目录
-├── database/
-│   ├── init.sql            # 数据库和数据表初始化
-│   └── README.md           # 数据库说明
-├── docs/
-│   └── BUILD.md            # 环境配置、编译与运行指南
-├── README.md               # 项目介绍
-└── CHANGELOG.md            # 项目开发日志
+│   ├── client.*             # 登录界面、TCP 连接和请求发送
+│   ├── reshandler.*         # 服务端响应处理
+│   ├── protocol.*           # PDU 和消息类型
+│   ├── index.* friend.*     # 主界面与好友管理
+│   ├── chat.*               # 聊天窗口和会话记录
+│   ├── file.* uploader.*    # 文件管理与分块上传
+│   └── client.qss           # 客户端样式
+├── Server/                  # Qt TCP 服务端
+│   ├── Server.pro           # 服务端 qmake 工程
+│   ├── mytcpserver.*         # 监听和连接管理
+│   ├── mytcpsocket.*         # 单连接收发与 PDU 分发
+│   ├── msghandler.*          # 业务请求处理
+│   ├── operatedb.*           # MySQL 操作
+│   └── database.ini.example  # 数据库配置示例
+├── database/                # 数据库初始化脚本和说明
+├── docs/                    # 编译运行指南
+├── README.md
+└── CHANGELOG.md
 ```
 
 ## 运行项目
 
-想在本地运行这个项目？环境准备、数据库初始化、配置和编译步骤已单独整理。
+想在本地运行这个项目？环境依赖、数据库初始化、连接配置和编译启动步骤已整理在单独的指南中。
 
 👉 [查看编译与运行指南](docs/BUILD.md)
 
@@ -126,4 +161,4 @@ PDU 定义在客户端和服务端各自的 `protocol.h` 中。固定部分由 `
 
 想了解项目经历了哪些功能迭代？
 
-👉 [查看完整开发日志](CHANGELOG.md)
+👉 [查看开发日志](CHANGELOG.md)
